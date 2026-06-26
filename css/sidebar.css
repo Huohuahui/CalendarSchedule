@@ -1,0 +1,231 @@
+/* ============================================================
+   sidebar.css - 左右侧边栏样式
+   作用：控制左右面板、统计卡片、信息卡片的样式
+   ============================================================ */
+
+/* ---------- 侧边栏通用 ---------- */
+/*
+    .side-panel 是左右面板的容器
+    flex: 0 0 260px 固定宽度260px（不伸缩）
+    毛玻璃效果：半透明 + 模糊
+*/
+.side-panel {
+    flex: 0 0 260px;                /* 固定宽度260px，不伸缩 */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 28px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 
+                inset 0 1px 2px rgba(255, 255, 255, 0.8);
+    padding: 24px 20px;             /* 内边距 */
+    display: flex;
+    flex-direction: column;         /* 纵向排列子元素 */
+    gap: 12px;                      /* 子元素间距12px */
+    transition: 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* 右侧面板宽度稍窄 */
+.side-panel.right {
+    flex: 0 0 180px;                /* 固定宽度180px */
+}
+
+/* ---------- 面板标题 ---------- */
+/*
+    text-transform: uppercase 转为大写
+    letter-spacing: 1.2px 增加字间距
+*/
+.side-panel .panel-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;      /* 转为大写 */
+    letter-spacing: 1.2px;          /* 字间距 */
+    color: #94a3b8;
+    border-bottom: 2px solid rgba(226, 232, 240, 0.6);
+    padding-bottom: 10px;
+}
+
+/* ---------- 统计卡片 ---------- */
+/*
+    display: flex 水平排列图标和数字
+    align-items: center 垂直居中
+*/
+.stat-card {
+    background: white;
+    border-radius: 18px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    transition: 0.2s;
+}
+
+/* 统计卡片悬停：上浮 + 阴影加深 */
+.stat-card:hover {
+    transform: translateY(-2px);    /* 向上移动2px */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- 统计图标 ---------- */
+.stat-card .stat-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;                 /* 不缩小 */
+}
+
+/* 加班图标：红色渐变背景 */
+.stat-card .stat-icon.overtime-icon {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #dc2626;
+}
+
+/* 休息图标：绿色渐变背景 */
+.stat-card .stat-icon.rest-icon {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #16a34a;
+}
+
+/* ---------- 统计信息 ---------- */
+.stat-card .stat-info {
+    flex: 1;                        /* 占据剩余空间 */
+}
+.stat-card .stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    letter-spacing: 0.3px;
+}
+.stat-card .stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;               /* 行高 */
+}
+.stat-card .stat-number.overtime-num {
+    color: #dc2626;                 /* 红色数字 */
+}
+.stat-card .stat-number.rest-num {
+    color: #16a34a;                 /* 绿色数字 */
+}
+
+/* ---------- 信息卡片 ---------- */
+/*
+    虚线边框的卡片，用于显示备注、待办等
+*/
+.info-card {
+    background: rgba(248, 250, 252, 0.7);
+    border-radius: 16px;
+    padding: 12px 14px;
+    border: 1.5px dashed rgba(203, 213, 225, 0.5); /* 虚线边框 */
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.75rem;
+    transition: 0.2s;
+    min-height: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+/* 信息卡片悬停：边框变实色 */
+.info-card:hover {
+    border-color: #94a3b8;
+    background: rgba(248, 250, 252, 0.9);
+}
+.info-card .icon {
+    font-size: 1.2rem;
+}
+.info-card .hint {
+    font-size: 0.55rem;
+    color: #cbd5e1;
+}
+
+/* 右侧面板的信息卡片最小高度 */
+.side-panel.right .info-card {
+    min-height: 60px;
+}
+
+/* ---------- 分割线 ---------- */
+hr.divider {
+    border: none;
+    border-top: 1.5px dashed rgba(203, 213, 225, 0.5);
+    margin: 4px 0;
+}
+
+/* ---------- 响应式 ---------- */
+/* 中等屏幕：减小侧边栏宽度 */
+@media (max-width: 1024px) {
+    .side-panel {
+        flex: 0 0 220px;            /* 宽度减小到220px */
+    }
+    .side-panel.right {
+        flex: 0 0 160px;
+    }
+}
+
+/* 小屏幕：侧边栏变为横向排列（与日历同一行） */
+@media (max-width: 900px) {
+    .side-panel {
+        flex: 1 1 auto;             /* 自动伸缩 */
+        width: 100%;
+        flex-direction: row;        /* 横向排列子元素 */
+        flex-wrap: wrap;            /* 允许换行 */
+        padding: 14px 16px;
+        gap: 8px;
+    }
+    .side-panel .panel-title {
+        width: 100%;                /* 标题占满整行 */
+    }
+    .side-panel .stat-card {
+        flex: 1;                    /* 统计卡片平均分配宽度 */
+        padding: 10px 14px;
+    }
+    .side-panel .info-card {
+        flex: 1;
+        min-width: 70px;
+        min-height: 40px;
+        padding: 8px 10px;
+    }
+    .side-panel.right {
+        flex: 1 1 auto;
+        width: 100%;
+    }
+    .side-panel.right .info-card {
+        min-height: 40px;
+    }
+    .side-panel .divider {
+        display: none;              /* 小屏幕隐藏分割线 */
+    }
+}
+
+/* 更小屏幕：统计卡片改为纵向排列 */
+@media (max-width: 640px) {
+    .side-panel .stat-card {
+        flex-direction: column;     /* 纵向排列 */
+        padding: 8px 12px;
+        align-items: center;
+        text-align: center;
+    }
+    .stat-card .stat-number {
+        font-size: 1.3rem;
+    }
+    .stat-card .stat-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
+        border-radius: 10px;
+    }
+    .side-panel {
+        padding: 10px 12px;
+        border-radius: 18px;
+    }
+}

@@ -1,0 +1,176 @@
+/* ============================================================
+   progress.css - 进度条样式
+   作用：控制基础加班和额外加班进度条的样式
+   ============================================================ */
+
+/* ---------- 进度条容器 ---------- */
+.progress-section {
+    background: white;
+    border-radius: 18px;
+    padding: 14px 18px;
+    position: relative;
+    border: 1.5px solid transparent;
+    background-clip: padding-box;
+    background: white;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.04),
+        inset 0 0 0 1.5px #3b82f6;
+    transition: 0.3s;
+}
+
+/* 基础进度条悬停效果 */
+.progress-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 24px rgba(59, 130, 246, 0.15),
+        inset 0 0 0 1.5px #3b82f6;
+}
+
+/* ---------- 额外加班进度条 ---------- */
+.progress-section.extra-section {
+    background: white;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.04),
+        inset 0 0 0 1.5px #8b5cf6;
+}
+
+.progress-section.extra-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 24px rgba(139, 92, 246, 0.15),
+        inset 0 0 0 1.5px #8b5cf6;
+}
+
+/* ---------- 进度条头部 ---------- */
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+}
+.progress-header .progress-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+}
+.progress-header .progress-count {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+.progress-header .progress-count .done {
+    color: #3b82f6;
+}
+.progress-header .progress-count .target {
+    color: #94a3b8;
+}
+
+/* 额外加班进度条：已完成数字改为紫色 */
+.progress-section.extra-section .progress-header .progress-count .done {
+    color: #8b5cf6;
+}
+
+/* ---------- 进度条轨道 ---------- */
+.progress-bar-track {
+    width: 100%;
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+/* ---------- 进度条填充 ---------- */
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 20px;
+    transition: width 0.6s ease;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    position: relative;
+}
+
+/* 填充条发光效果 */
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* 达标后的填充：绿色渐变 */
+.progress-bar-fill.achieved {
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+/* 额外加班进度条：紫色渐变 */
+.progress-section.extra-section .progress-bar-fill {
+    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+}
+
+.progress-section.extra-section .progress-bar-fill.achieved {
+    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+}
+
+/* ---------- 进度状态文字 ---------- */
+.progress-status {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 6px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+/* 未达标状态：红色背景 */
+.progress-status.unachieved {
+    color: #dc2626;
+    background: #fee2e2;
+}
+
+/* 达标状态：绿色背景 */
+.progress-status.achieved {
+    color: #16a34a;
+    background: #dcfce7;
+}
+
+/* 刚好达标状态：蓝色背景 */
+.progress-status.exact {
+    color: #3b82f6;
+    background: #dbeafe;
+}
+
+/* 额外加班进行中：紫色背景 */
+.progress-status.extra {
+    color: #7c3aed;
+    background: #ede9fe;
+}
+
+/* 额外进度条的状态文字（达标时用紫色） */
+.progress-section.extra-section .progress-status.achieved {
+    color: #7c3aed;
+    background: #ede9fe;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 900px) {
+    .progress-section {
+        flex: 1;
+        min-width: 140px;
+    }
+}
+@media (max-width: 640px) {
+    .progress-section {
+        padding: 10px 12px;
+    }
+}

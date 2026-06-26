@@ -1,0 +1,87 @@
+/* ============================================================
+   main.css - 全局样式 + 布局
+   作用：控制整个页面的基础样式和整体布局
+   ============================================================ */
+
+/* ---------- 通配符重置 ---------- */
+/* 
+    * 选择器匹配所有元素
+    margin: 0 和 padding: 0 清除浏览器默认边距
+    box-sizing: border-box 让元素的宽高包含边框和内边距（更直观）
+    user-select: none 禁止用户选中文字（提升拖拽体验）
+*/
+* {
+    margin: 0;                      /* 清除所有元素的外边距 */
+    padding: 0;                     /* 清除所有元素的内边距 */
+    box-sizing: border-box;         /* 盒模型：宽高 = content + padding + border */
+    user-select: none;              /* 禁止选中文字 */
+}
+
+/* ---------- body 样式 ---------- */
+/*
+    body 是页面主体
+    background: 设置渐变背景（从浅灰到灰蓝）
+    display: flex 让 body 使用弹性布局
+    justify-content: center 水平居中
+    align-items: center 垂直居中
+    min-height: 100vh 最小高度占满视口
+    margin 和 padding 提供外边距和内边距
+*/
+body {
+    /* 
+        linear-gradient(角度, 起始颜色, 结束颜色)
+        145deg 表示从左上到右下
+    */
+    background: linear-gradient(145deg, #eef2f7 0%, #dce3ed 100%);
+    display: flex;                  /* 弹性布局 */
+    justify-content: center;        /* 水平居中 */
+    align-items: center;            /* 垂直居中 */
+    min-height: 100vh;              /* 最小高度 = 视口高度 */
+    margin: 20px;                   /* 外边距 */
+    padding: 20px;                  /* 内边距 */
+}
+
+/* ---------- 应用容器 ---------- */
+/*
+    .app-container 是整体容器，包含三个面板
+    display: flex 让子元素横向排列
+    gap: 20px 子元素间距20px
+    max-width: 1200px 最大宽度，防止过宽
+    width: 100% 宽度占满父容器
+    align-items: stretch 让子元素高度拉伸对齐
+*/
+.app-container {
+    display: flex;                  /* 弹性布局，子元素横向排列 */
+    gap: 20px;                      /* 子元素间距20px */
+    max-width: 1200px;              /* 最大宽度1200px */
+    width: 100%;                    /* 宽度100% */
+    align-items: stretch;           /* 子元素高度拉伸对齐 */
+}
+
+/* ---------- 响应式布局（屏幕宽度 ≤ 900px） ---------- */
+/*
+    @media 媒体查询，当屏幕宽度小于等于900px时生效
+    将横向布局改为纵向布局，适合平板/手机
+*/
+@media (max-width: 900px) {
+    .app-container {
+        flex-direction: column;     /* 改为纵向排列 */
+        align-items: center;        /* 水平居中 */
+    }
+}
+
+/* ---------- 响应式布局（屏幕宽度 ≤ 640px） ---------- */
+@media (max-width: 640px) {
+    body {
+        margin: 10px;               /* 减小外边距 */
+        padding: 10px;              /* 减小内边距 */
+    }
+}
+
+/* ---------- 响应式布局（屏幕宽度 ≤ 420px） ---------- */
+@media (max-width: 420px) {
+    body {
+        margin: 6px;                /* 进一步减小 */
+        padding: 6px;
+    }
+}

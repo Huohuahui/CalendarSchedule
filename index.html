@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<!-- 声明文档类型为 HTML5，告诉浏览器使用标准模式解析 -->
+<html lang="zh">
+<head>
+    <!-- 字符编码：UTF-8 支持中文 -->
+    <meta charset="UTF-8">
+    <!-- 视口设置：让页面在移动设备上自适应缩放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <!-- 页面标题，显示在浏览器标签栏 -->
+    <title>加班/休息标记日历</title>
+
+    <!-- ========== 加载所有 CSS 文件 ========== -->
+    <!-- rel="stylesheet" 表示这是样式表，href 指定文件路径 -->
+    <link rel="stylesheet" href="css/main.css">        <!-- 全局样式 + 布局 -->
+    <link rel="stylesheet" href="css/calendar.css">    <!-- 日历网格样式 -->
+    <link rel="stylesheet" href="css/sidebar.css">     <!-- 左右侧边栏样式 -->
+    <link rel="stylesheet" href="css/progress.css">    <!-- 进度条样式 -->
+</head>
+<body>
+    <!-- 
+        ===== 整体应用容器 =====
+        class="app-container" 用于 CSS 选择器
+        这个容器用 flex 布局把三个面板排成一行
+    -->
+    <div class="app-container">
+
+        <!-- ===== 左侧面板 ===== -->
+        <!-- side-panel：左侧面板容器，id="leftPanel" 用于 JavaScript 获取元素 -->
+        <div class="side-panel" id="leftPanel">
+            <!-- 面板标题，用 panel-title 类控制样式 -->
+            <div class="panel-title">📊 本月统计</div>
+
+            <!-- ===== 加班统计卡片 ===== -->
+            <!-- stat-card：统计卡片容器 -->
+            <div class="stat-card">
+                <!-- 图标容器，overtime-icon 控制背景颜色 -->
+                <div class="stat-icon overtime-icon">🌙</div>
+                <!-- 统计信息容器 -->
+                <div class="stat-info">
+                    <!-- 标签文字 -->
+                    <div class="stat-label">加班</div>
+                    <!-- 
+                        数字显示区域
+                        id="overtimeCount" 让 JavaScript 可以更新这个数字
+                        overtime-num 控制文字颜色（红色）
+                    -->
+                    <div class="stat-number overtime-num" id="overtimeCount">0</div>
+                </div>
+            </div>
+
+            <!-- ===== 休息统计卡片 ===== -->
+            <div class="stat-card">
+                <!-- 休息图标：太阳，rest-icon 控制绿色背景 -->
+                <div class="stat-icon rest-icon">☀️</div>
+                <div class="stat-info">
+                    <div class="stat-label">休息</div>
+                    <!-- rest-num 控制文字颜色（绿色） -->
+                    <div class="stat-number rest-num" id="restCount">0</div>
+                </div>
+            </div>
+
+            <!-- ===== 分割线 ===== -->
+            <!-- hr 是水平分割线标签，class="divider" 控制虚线样式 -->
+            <hr class="divider">
+
+            <!-- ===== 基础加班进度条 ===== -->
+            <!-- progress-section：进度条容器，id="progressSection" 用于 JavaScript -->
+            <div class="progress-section" id="progressSection">
+                <!-- 进度条头部：显示标签和数字 -->
+                <div class="progress-header">
+                    <!-- 进度条标签 -->
+                    <span class="progress-label">🎯 基础目标</span>
+                    <!-- 进度数字 -->
+                    <span class="progress-count">
+                        <!-- done：已完成数量，id 供 JS 更新 -->
+                        <span class="done" id="progressDone">0</span>
+                        <!-- target：目标数量 -->
+                        <span class="target">/ <span id="progressTarget">14</span></span>
+                    </span>
+                </div>
+                <!-- 进度条轨道（背景条） -->
+                <div class="progress-bar-track">
+                    <!-- 
+                        进度条填充（动态宽度）
+                        id="progressFill" 让 JS 控制宽度
+                        style="width:0%" 初始宽度为0
+                    -->
+                    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+                </div>
+                <!-- 进度状态文字，id 供 JS 更新 -->
+                <div class="progress-status" id="progressStatus">⏳ 进行中...</div>
+            </div>
+
+            <!-- ===== 额外加班进度条 ===== -->
+            <!-- extra-section 类让这个进度条显示为紫色主题 -->
+            <div class="progress-section extra-section" id="extraProgressSection">
+                <div class="progress-header">
+                    <span class="progress-label">⭐ 额外加班</span>
+                    <span class="progress-count">
+                        <span class="done" id="extraDone">0</span>
+                        <span class="target">/ <span id="extraTarget">8</span></span>
+                    </span>
+                </div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" id="extraFill" style="width:0%"></div>
+                </div>
+                <div class="progress-status" id="extraStatus">⏳ 进行中...</div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- ===== 备注信息卡片 ===== -->
+            <!-- info-card：信息卡片，虚线边框 -->
+            <div class="info-card">
+                <span class="icon">📌</span>
+                <span>本月备注</span>
+                <span class="hint">点击此处添加信息</span>
+            </div>
+        </div>
+
+        <!-- ===== 日历主区域 ===== -->
+        <!-- calendar-wrapper：日历主容器，id="app" 是主应用标识 -->
+        <div class="calendar-wrapper" id="app">
+            <!-- ===== 日历头部 ===== -->
+            <div class="calendar-header">
+                <!-- 显示当前年月，加📅图标让标题更饱满，id 供 JS 更新 -->
+                <div class="month-year" id="monthYearDisplay">2026年6月</div>
+                <!-- 导航按钮组 -->
+                <div class="nav-group">
+                    <!-- 上个月按钮：‹ 上月，点击切换到上个月 -->
+                    <button class="nav-btn" id="prevMonthBtn">‹ 上月</button>
+                    <!-- 今天按钮：加📌图标，蓝色主题，点击回到今天 -->
+                    <button class="nav-btn today-btn" id="todayBtn">📌 今天</button>
+                    <!-- 下个月按钮：下月 ›，点击切换到下个月 -->
+                    <button class="nav-btn" id="nextMonthBtn">下月 ›</button>
+                </div>
+            </div>
+
+            <!-- ===== 星期行 ===== -->
+            <!-- weekdays 类控制星期文字样式，7列对应周一到周日 -->
+            <div class="weekdays">
+                <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div>
+            </div>
+
+            <!-- ===== 日期网格 ===== -->
+            <!-- days-grid 是日期网格容器，id="daysGrid" 供 JavaScript 动态渲染日期 -->
+            <div class="days-grid" id="daysGrid"></div>
+
+            <!-- ===== 底部操作栏 ===== -->
+            <div class="footer-bar">
+                <!-- 左侧提示文字 -->
+                <div style="display:flex; gap:6px; align-items:center; font-size:0.7rem; color:#94a3b8;">
+                    <span>💡 点击切换</span>
+                    <span style="opacity:0.3;">|</span>
+                    <span>🔄 拖拽批量</span>
+                </div>
+                <!-- 右侧操作按钮组 -->
+                <div class="action-group">
+                    <!-- 清除按钮：点击清除本月所有标记 -->
+                    <button class="action-btn clear-btn" id="clearMonthBtn">🗑️ 清除</button>
+                    <!-- 加班按钮：红色主题，draggable="true" 让按钮可以被拖拽 -->
+                    <button class="action-btn overtime-btn" id="markOvertimeBtn" draggable="true">🌙 加班</button>
+                    <!-- 休息按钮：绿色主题，draggable="true" 让按钮可以被拖拽 -->
+                    <button class="action-btn rest-btn" id="markRestBtn" draggable="true">☀️ 休息</button>
+                </div>
+            </div>
+
+            <!-- ===== 提示消息 ===== -->
+            <!-- toast-message 显示操作反馈，id 供 JS 更新文字 -->
+            <div id="toastMessage" class="toast-message">💾 数据自动保存 · 拖拽按钮到日期可批量标记</div>
+        </div>
+
+        <!-- ===== 右侧面板 ===== -->
+        <!-- side-panel right：右侧面板，right 类让这个面板在右侧显示 -->
+        <div class="side-panel right" id="rightPanel">
+            <div class="panel-title">📋 快速操作</div>
+
+            <!-- 跳转今天卡片，cursor:pointer 表示可点击 -->
+            <div class="info-card" style="cursor:pointer;" id="quickToday">
+                <span class="icon">📍</span>
+                <span>跳转到今天</span>
+                <span class="hint" id="todayDateDisplay">点击跳转</span>
+            </div>
+
+            <!-- 清除本月卡片 -->
+            <div class="info-card" style="cursor:pointer;" id="quickClear">
+                <span class="icon">🧹</span>
+                <span>清除本月</span>
+                <span class="hint">清空所有标记</span>
+            </div>
+
+            <hr class="divider">
+
+            <!-- 待办事项卡片（预留位置） -->
+            <div class="info-card">
+                <span class="icon">📝</span>
+                <span>待办事项</span>
+                <span class="hint">预留位置</span>
+            </div>
+            <!-- 提醒卡片（预留位置） -->
+            <div class="info-card">
+                <span class="icon">🔔</span>
+                <span>提醒</span>
+                <span class="hint">预留位置</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 加载所有 JavaScript 文件 ========== -->
+    <!-- 
+        script 标签加载 JS 文件
+        放在 body 底部，确保 DOM 元素已加载完成
+        按依赖顺序加载：农历库 → 工具类 → 存储 → 进度 → 日历 → 拖拽 → 主程序
+    -->
+    <!-- 农历转换库：将公历日期转换为农历 -->
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.11/lunar.min.js"></script>
+    <script src="js/utils.js"></script>      <!-- 工具函数：日期格式化等 -->
+    <script src="js/storage.js"></script>    <!-- 数据存储：读写 localStorage -->
+    <script src="js/progress.js"></script>   <!-- 进度条：计算和更新 -->
+    <script src="js/calendar.js"></script>   <!-- 日历：渲染和交互 -->
+    <script src="js/dragDrop.js"></script>   <!-- 拖拽：拖拽功能 -->
+    <script src="js/main.js"></script>       <!-- 主程序：初始化和组装 -->
+</body>
+</html>
