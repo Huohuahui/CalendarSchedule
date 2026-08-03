@@ -1,0 +1,95 @@
+/* ============================================================
+   themes.css - 自定义主题色
+   作用：控制全局颜色变量，支持用户自定义主题
+   ============================================================ */
+
+/* ---------- 默认主题（蓝色） ---------- */
+:root {
+    /* 主色 */
+    --primary: #3b82f6;
+    --primary-light: #60a5fa;
+    --primary-dark: #2563eb;
+    --primary-bg: #dbeafe;
+    --primary-hover: #bfdbfe;
+    
+    /* 加班颜色 */
+    --overtime: #dc2626;
+    --overtime-light: #fca5a5;
+    --overtime-bg: #fee2e2;
+    
+    /* 休息颜色 */
+    --rest: #16a34a;
+    --rest-light: #86efac;
+    --rest-bg: #dcfce7;
+    
+    /* 背景和文字 */
+    --bg-card: rgba(255, 255, 255, 0.88);
+    --bg-sidebar: rgba(255, 255, 255, 0.85);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-color: rgba(226, 232, 240, 0.6);
+}
+
+/* ---------- 红色主题 ---------- */
+[data-theme="red"] {
+    --primary: #ef4444;
+    --primary-light: #f87171;
+    --primary-dark: #dc2626;
+    --primary-bg: #fee2e2;
+    --primary-hover: #fecaca;
+}
+
+/* ---------- 橙色主题 ---------- */
+[data-theme="orange"] {
+    --primary: #f59e0b;
+    --primary-light: #fbbf24;
+    --primary-dark: #d97706;
+    --primary-bg: #fef3c7;
+    --primary-hover: #fde68a;
+}
+
+/* ---------- 绿色主题 ---------- */
+[data-theme="green"] {
+    --primary: #22c55e;
+    --primary-light: #4ade80;
+    --primary-dark: #16a34a;
+    --primary-bg: #dcfce7;
+    --primary-hover: #bbf7d0;
+}
+
+/* ---------- 紫色主题 ---------- */
+[data-theme="purple"] {
+    --primary: #8b5cf6;
+    --primary-light: #a78bfa;
+    --primary-dark: #7c3aed;
+    --primary-bg: #ede9fe;
+    --primary-hover: #ddd6fe;
+}
+
+/* ---------- 粉色主题 ---------- */
+[data-theme="pink"] {
+    --primary: #ec4899;
+    --primary-light: #f472b6;
+    --primary-dark: #db2777;
+    --primary-bg: #fce7f3;
+    --primary-hover: #fbcfe8;
+}
+
+/* ---------- 青色主题 ---------- */
+[data-theme="cyan"] {
+    --primary: #06b6d4;
+    --primary-light: #22d3ee;
+    --primary-dark: #0891b2;
+    --primary-bg: #cffafe;
+    --primary-hover: #a5f3fc;
+}
+
+/* ---------- 灰色主题 ---------- */
+[data-theme="gray"] {
+    --primary: #6b7280;
+    --primary-light: #9ca3af;
+    --primary-dark: #4b5563;
+    --primary-bg: #f3f4f6;
+    --primary-hover: #e5e7eb;
+}
