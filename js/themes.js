@@ -24,7 +24,7 @@ function setTheme(theme) {
     document.querySelectorAll('.theme-dot').forEach(function(dot) {
         var dotTheme = dot.getAttribute('data-theme');
         if (dotTheme === theme || (theme === 'default' && dotTheme === 'default')) {
-            dot.style.borderColor = '#0f172a';
+            dot.style.borderColor = '#FFFFFF';
             dot.style.transform = 'scale(1.15)';
         } else {
             dot.style.borderColor = '#e2e8f0';
@@ -46,7 +46,7 @@ function loadTheme() {
         // 默认选中默认主题
         document.querySelectorAll('.theme-dot').forEach(function(dot) {
             if (dot.getAttribute('data-theme') === 'default') {
-                dot.style.borderColor = '#0f172a';
+                dot.style.borderColor = '#FFFFFF';
                 dot.style.transform = 'scale(1.15)';
             }
         });
