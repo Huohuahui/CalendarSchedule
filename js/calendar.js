@@ -62,6 +62,26 @@ function createFestivalElement(text, isStatusActive) {
 }
 
 function renderCalendar(year, month, onStatusChange) {
+    // ===== 新增：月份名映射 =====
+    const MONTH_NAMES = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+    
+    // ===== 计算上个月和下个月 =====
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const prevMonthName = MONTH_NAMES[prevMonth - 1];
+    const nextMonthName = MONTH_NAMES[nextMonth - 1];
+
+    // ===== 更新按钮文字 =====
+    const prevBtn = document.getElementById('prevMonthBtn');
+    const nextBtn = document.getElementById('nextMonthBtn');
+    if (prevBtn) {
+        prevBtn.innerHTML = '<span style="font-size:10px;">' + prevMonthName + '</span>';
+    }
+    if (nextBtn) {
+        nextBtn.innerHTML = '<span style="font-size:10px;">' + nextMonthName + '</span>';
+    }
+
+    // ===== 下面是原来的代码，不要动！ =====
     document.getElementById('monthYearDisplay').innerHTML = year + '年' + month + '月';
 
     const firstDay = new Date(year, month - 1, 1);
@@ -106,33 +126,38 @@ function renderCalendar(year, month, onStatusChange) {
         div.dataset.month = m;
         div.dataset.day = d;
 
-        // ----- 公历日期 -----
         const num = document.createElement('span');
         num.className = 'date-number';
         num.textContent = d;
         const dateColor = isStatusActive ? '#ffffff' : '#0f172a';
-        num.style.cssText = `display:block;font-size:1.1rem;font-weight:700;color:${dateColor};line-height:1.2;`;
+        num.style.cssText = 'display:block;font-size:1.1rem;font-weight:700;color:' + dateColor + ';line-height:1.2;';
         div.appendChild(num);
 
-        // ----- 农历/节气 -----
         const info = getLunarInfo(y, m, d);
         if (info.display) {
-            const span = createTextElement(info.display, 'lunar-date', isStatusActive);
+            const span = document.createElement('span');
+            span.className = 'lunar-date';
+            span.textContent = info.display;
+            const color = isStatusActive ? '#ffffff' : '#475569';
+            span.style.cssText = 'display:block;font-size:0.7rem;font-weight:600;color:' + color + ';line-height:1.3;margin-top:2px;letter-spacing:0.3px;';
             div.appendChild(span);
         }
 
-        // ----- 节日 -----
         if (info.festival) {
-            const span = createFestivalElement(info.festival, isStatusActive);
+            const span = document.createElement('span');
+            span.className = 'festival-date';
+            span.textContent = info.festival;
+            const color = isStatusActive ? '#fca5a5' : '#dc2626';
+            const bg = isStatusActive ? 'rgba(255,255,255,0.15)' : 'rgba(220,38,38,0.10)';
+            span.style.cssText = 'display:block;font-size:0.5rem;font-weight:700;color:' + color + ';background:' + bg + ';padding:0 6px;border-radius:10px;line-height:1.5;margin-top:2px;';
             div.appendChild(span);
         }
 
-        // ----- 加班/休息标记 -----
         const label = document.createElement('span');
         label.className = 'status-label';
         label.textContent = status === 'overtime' ? '🌙' : status === 'rest' ? '☀️' : '·';
         const labelColor = isStatusActive ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.3)';
-        label.style.cssText = `font-size:0.55rem;margin-top:1px;color:${labelColor};`;
+        label.style.cssText = 'font-size:0.55rem;margin-top:1px;color:' + labelColor + ';';
         div.appendChild(label);
 
         div.addEventListener('click', function () {
