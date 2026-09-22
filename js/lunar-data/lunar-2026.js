@@ -245,7 +245,7 @@ var LUNAR_2026 = {
     "09-28": { display: "十八" },
     "09-29": { display: "十九" },
     "09-30": { display: "二十" },
-    "10-01": { display: "廿一", festival: "国企"  },
+    "10-01": { display: "廿一", festival: "国庆"  },
     "10-02": { display: "廿二" },
     "10-03": { display: "廿三" },
     "10-04": { display: "廿四" },
