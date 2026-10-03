@@ -1,0 +1,100 @@
+# 加班 / 休息标记日历
+
+一个纯静态、零依赖、可离线运行的排班日历 Web 应用。用于标记每一天的「加班」或「休息」，并附带农历、节日、月度目标进度、倒计时、天气、主题切换等实用功能。所有数据保存在浏览器本地，不依赖任何后端服务。
+
+## ✨ 功能特性
+
+- **排班标记**：点击日期即可标记「🌙 加班」/「☀️ 休息」，再次点击取消。
+- **拖拽批量标记**：把底部「加班 / 休息」按钮拖到日期格子上即可完成标记；也支持「☑️ 多选」逐格勾选后批量标记。
+- **撤销 / 重做**：所有排班变更自动记录历史，`Ctrl+Z` 撤销、`Ctrl+Shift+Z` 重做。
+- **农历与节日**：基于 `lunar-javascript` 天文算法库实时推算农历日期与 24 节气（非查表，跨年无误差）；仅显示白名单内的法定与传统节日，界面清爽不拥挤。
+- **月度目标进度**：「🎯 基础目标」与「⭐ 额外加班」双进度条，实时统计本月加班 / 休息天数。
+- **倒计时**：自定义添加任意目标日期，自动显示剩余天数。
+- **快速操作（2×2 宫格）**：今天跳转、清空本月、套用模板、复制上月排班。
+- **排班模板**：内置「上五休二 / 上六休一 / 隔天轮换 / 仅工作日」等模板，一键套用。
+- **天气 / 问候 / 时钟**：右侧面板展示今日天气、时段问候语与实时时钟。
+- **主题切换**：多套主题配色，通过圆点一键切换。
+- **数据导入 / 导出**：支持把本地排班数据导出备份，并在其他设备导入还原。
+- **PWA 离线**：通过 Service Worker 缓存资源，首次加载后可离线使用，支持「添加到主屏幕」。
+
+## 🧩 技术栈
+
+- 原生 HTML + CSS + JavaScript（**无构建流程、无框架、无第三方 CDN 依赖**）
+- 农历计算：`js/lunar.min.js`（[lunar-javascript](https://github.com/6tail/lunar-javascript) v1.6.11）
+- 数据持久化：浏览器 `localStorage`
+- 离线能力：Service Worker（`sw.js`）+ Web App Manifest（`pwa/manifest.json`）
+
+## 📁 文件结构
+
+```
+排班计划表/
+├── index.html            # 入口页面（主目录仅保留此文件）
+├── sw.js                 # Service Worker（必须位于根目录）
+├── README.md             # 项目说明
+├── .gitignore
+├── css/                  # 样式表
+│   ├── main.css          # 整体布局
+│   ├── calendar.css      # 日历网格与日期格
+│   ├── sidebar.css       # 左右侧栏（统计/进度/快速操作/天气）
+│   ├── progress.css      # 进度条
+│   └── themes.css        # 主题配色变量
+├── js/                   # 脚本（按依赖顺序 defer 加载）
+│   ├── lunar.min.js      # 农历算法库
+│   ├── utils.js          # 日期 / 通用工具
+│   ├── storage.js        # localStorage 读写（含异常保护）
+│   ├── history.js        # 撤销 / 重做栈
+│   ├── progress.js       # 月度目标进度
+│   ├── calendar.js       # 日历渲染 + 农历/节日
+│   ├── dragDrop.js       # 拖拽 / 多选标记
+│   ├── themes.js         # 主题切换
+│   ├── countdown.js      # 倒计时
+│   ├── templates.js      # 排班模板 / 复制上月
+│   └── main.js           # 入口与主流程
+├── icons/                # PWA 图标（192 / 512 / apple-touch）
+├── pwa/
+│   └── manifest.json     # Web App Manifest
+└── docs/
+    └── 代码审查报告.html  # 历史代码审查记录
+```
+
+## 🚀 快速开始
+
+### 本地打开
+直接用浏览器打开 `index.html` 即可使用（推荐 Chrome / Edge / Firefox / Safari 等现代浏览器）。
+
+> 提示：日历数据保存在当前浏览器的 `localStorage` 中。更换浏览器或清除浏览器数据会丢失标记，建议定期使用底部「💾 导出」备份。
+
+### 部署到静态托管（如 GitHub Pages）
+项目为纯静态文件，将整个目录推送到仓库并开启 Pages 即可：
+
+```bash
+git init -b main
+git add .
+git commit -m "init calendar schedule"
+git remote add origin <你的仓库地址>
+git push -u origin main
+```
+
+开启 GitHub Pages（Source 选择 `main` 分支根目录）后，访问分配的地址即可在线使用。
+
+## ⌨️ 快捷键
+
+| 快捷键 | 功能 |
+| --- | --- |
+| `Ctrl + Z` | 撤销上一步排班操作 |
+| `Ctrl + Shift + Z` | 重做被撤销的操作 |
+
+## 📝 数据说明
+
+- 所有排班、倒计时、主题等数据均存于浏览器 `localStorage`，**不上传任何服务器**。
+- 隐私模式或存储配额已满时，写入会失败并静默降级（不影响浏览）。
+- 跨设备 / 跨浏览器同步请使用「导出 / 导入」功能。
+
+## 🌗 农历与节日
+
+- 农历与节气由算法库实时推算，覆盖 1900–2100 年，无需更新数据文件。
+- 节日采用白名单机制（法定节日 + 传统节日），如需增删节日，修改 `js/calendar.js` 中的 `FESTIVAL_WHITELIST` 数组即可。
+
+---
+
+如有问题或建议，欢迎提交 Issue 或 Pull Request。
