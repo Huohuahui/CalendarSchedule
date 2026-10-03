@@ -11,8 +11,7 @@
     position: relative;
     border: 1.5px solid transparent;
     background-clip: padding-box;
-    background: white;
-    box-shadow: 
+    box-shadow:
         0 4px 12px rgba(0, 0, 0, 0.04),
         inset 0 0 0 1.5px #3b82f6;
     transition: 0.3s;

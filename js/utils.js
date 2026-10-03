@@ -48,19 +48,19 @@ function getToday() {
 
 /**
  * 获取指定月份的天数
- * 
+ *
  * 知识点：
- * - new Date(year, month, 0) 中的 month 参数：1月=1，2月=2...
- *   第三个参数 0 表示上个月的最后一天
- *   所以 new Date(2026, 6, 0) 返回 2026年5月31日
+ * - new Date(year, month, 0) 中的 month 参数按 1-12 传入：
+ *   JS 内部把它当作 0-based 的下一个月，第 0 天 = 上一个月的最后一天
+ *   例如 getDaysInMonth(2026, 7) → new Date(2026, 7, 0) = 2026年7月31日 → 31
  * - getDate() 返回该月的天数
- * 
+ *
  * @param {number} year  - 年份
  * @param {number} month - 月份（1-12）
  * @returns {number} 该月的天数（28-31）
  */
 function getDaysInMonth(year, month) {
-    // month 参数：1月=1，所以 6月 → new Date(2026, 6, 0) = 5月31日
+    // 例如 7月 → new Date(2026, 7, 0) = 7月31日
     return new Date(year, month, 0).getDate();
 }
 

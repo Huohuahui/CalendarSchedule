@@ -142,13 +142,6 @@
     transform: scale(0.92);
 }
 
-/* ---------- 非当月日期 ---------- */
-.day-cell.other-month {
-    color: #94a3b8;
-    background: #f1f4f9;
-    opacity: 0.6;
-}
-
 /* ---------- 今日高亮 ---------- */
 .day-cell.today {
     border-color: var(--primary);
@@ -161,6 +154,19 @@
     border-color: #6b7280;
     box-shadow: 0 0 0 4px rgba(107, 114, 128, 0.25);
     z-index: 2;
+}
+
+/* ---------- 多选模式：日期格子选中态 ---------- */
+.day-cell.multi-selected {
+    border: 2px dashed var(--primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    transform: scale(1.05);
+    z-index: 1;
+}
+
+/* 多选模式下的格子点击反馈 */
+.day-cell.multi-selected:active {
+    transform: scale(0.95);
 }
 
 /* ---------- 三种状态样式 ---------- */
@@ -181,25 +187,9 @@
     box-shadow: 0 4px 16px rgba(22, 163, 74, 0.3);
 }
 
-.day-cell.other-month.status-overtime {
-    background: var(--overtime-light);
-    color: #7f1d1d;
-    box-shadow: none;
-}
-
-.day-cell.other-month.status-rest {
-    background: var(--rest-light);
-    color: #14532d;
-    box-shadow: none;
-}
-
 .day-cell:not(.other-month):hover {
     filter: brightness(0.95);
     transform: scale(1.03);
-}
-
-.day-cell.other-month:hover {
-    filter: brightness(0.97);
 }
 
 /* ---------- 状态标签 ---------- */
@@ -229,10 +219,6 @@
     color: #f0fdf4;
 }
 
-.day-cell.other-month .status-label {
-    opacity: 0.5;
-}
-
 /* ---------- 空单元格 ---------- */
 .day-cell.empty-cell {
     background: transparent;
@@ -259,6 +245,10 @@
     margin-top: 1px;
     letter-spacing: 0.3px;
     white-space: nowrap;
+    max-width: 92%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
 }
 
 .day-cell.status-normal .lunar-date {
@@ -281,6 +271,11 @@
     white-space: nowrap;
     color: var(--overtime);
     background: rgba(220, 38, 38, 0.10);
+    /* 防止长节日名把格子撑破：超出宽度自动省略 */
+    max-width: 92%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
 }
 
 .day-cell.status-overtime .festival-date,
@@ -299,14 +294,14 @@
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
-/* ---------- 底部操作栏 ---------- */
+/* ---------- 底部操作栏（默认单行显示） ---------- */
 .footer-bar {
     margin-top: 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 10px 6px;
+    flex-wrap: nowrap;
+    gap: 10px;
     border-top: 1.5px solid rgba(226, 232, 240, 0.6);
     padding-top: 14px;
 }
@@ -315,7 +310,8 @@
 .action-group {
     display: flex;
     gap: 6px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
 }
 
 /* ---------- 操作按钮 ---------- */
@@ -367,6 +363,25 @@
 .action-btn.clear-btn:hover {
     background: #f1f4f9;
     border-color: #94a3b8;
+}
+
+/* ---------- 多选切换按钮 ---------- */
+.action-btn.multi-btn {
+    background: rgba(241, 244, 249, 0.7);
+    border: 1.5px solid rgba(203, 213, 225, 0.5);
+    color: #475569;
+    cursor: pointer;
+}
+.action-btn.multi-btn:hover {
+    background: #f1f4f9;
+    border-color: #94a3b8;
+}
+/* 激活态：跟随主题色 */
+.action-btn.multi-btn.active {
+    background: var(--primary-bg);
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.25);
 }
 
 /* ---------- 拖拽克隆元素 ---------- */
@@ -457,19 +472,304 @@
         padding: 4px 8px;
         font-size: 0.65rem;
     }
+
+    /* 窄屏放不下一行时允许换行，避免溢出 */
+    .footer-bar {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .footer-hints {
+        flex-wrap: wrap;
+        overflow: visible;
+    }
 }
 
-/* ---------- 倒计时模块宽度调整（与统计卡片对齐） ---------- */
-/* 倒计时外层容器 - 调整左右内边距，与统计卡片保持一致 */
+/* ---------- 底部提示区 ---------- */
+.footer-hints {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow: hidden;
+    min-width: 0;
+}
+.footer-hints .hint-sep {
+    opacity: 0.3;
+}
+.footer-hints .footer-link {
+    font-size: 0.6rem;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.footer-hints .footer-link:hover {
+    color: var(--primary);
+}
+/* 无历史可撤销时的置灰态 */
+.footer-hints .footer-link.disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+.footer-hints .footer-link.disabled:hover {
+    color: #94a3b8;
+}
+
+/* ---------- 排班模板弹窗 ---------- */
+.template-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: 0.2s;
+}
+.template-item:hover {
+    border-color: #3b82f6;
+    background: #dbeafe;
+}
+.template-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+.template-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.template-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.template-desc {
+    font-size: 0.6rem;
+    color: #94a3b8;
+}
+
+/* ---------- 倒计时模块 ---------- */
 .countdown-module {
-    padding-left: 18px !important;
-    padding-right: 18px !important;
+    background: rgba(248, 250, 252, 0.7);
+    border-radius: 16px;
+    padding: 10px 18px;
+    border: none;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+}
+.countdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid rgba(226, 232, 240, 0.6);
+}
+.countdown-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.countdown-add {
+    font-size: 0.65rem;
+    color: #3b82f6;
+    cursor: pointer;
+    transition: 0.2s;
+    padding: 0 4px;
+    font-weight: 500;
+}
+.countdown-add:hover {
+    color: #2563eb;
+}
+.countdown-list {
+    flex: 1;
+    min-height: 40px;
+}
+.countdown-empty {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    text-align: center;
+    padding: 8px 0;
 }
 
-/* 倒计时卡片 - 与统计卡片宽度一致 */
+/* 倒计时卡片（动态内容如边框色/阴影由 JS 内联补充） */
 .countdown-card {
-    padding-left: 18px !important;
-    padding-right: 18px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
+    background: white;
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin-bottom: 6px;
+    border: 2px solid #e9edf3;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: 0.2s;
+    cursor: pointer;
+    box-sizing: border-box;
+    width: 100%;
+}
+.countdown-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+/* 置顶卡片：金色边框 */
+.countdown-card.pinned {
+    border-color: #f59e0b;
+    box-shadow: 0 2px 12px rgba(245, 158, 11, 0.15);
+}
+
+/* ---------- 弹窗通用 ---------- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.modal-box {
+    background: white;
+    border-radius: 20px;
+    padding: 24px 28px;
+    max-width: 340px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+.modal-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 14px;
+    text-align: center;
+}
+.modal-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 4px;
+}
+.modal-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    outline: none;
+    transition: 0.2s;
+    box-sizing: border-box;
+    margin-bottom: 14px;
+}
+.modal-input:focus {
+    border-color: #3b82f6;
+}
+.modal-btn-group {
+    display: flex;
+    gap: 10px;
+}
+.modal-btn {
+    flex: 1;
+    padding: 8px 0;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.modal-btn-cancel {
+    border: 1.5px solid #e2e8f0;
+    background: transparent;
+    color: #64748b;
+}
+.modal-btn-cancel:hover {
+    background: #f1f4f9;
+}
+.modal-btn-primary {
+    border: none;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    font-weight: 600;
+    color: white;
+}
+.modal-btn-primary:hover {
+    opacity: 0.9;
+}
+
+/* 弹窗里的选择按钮（类型 / 子类型 / 置顶） */
+.chip-btn {
+    padding: 6px 0;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.chip-btn.sub-chip {
+    padding: 4px 12px;
+    font-weight: 500;
+    font-size: 0.7rem;
+    flex: none;
+}
+.chip-btn:hover {
+    border-color: #cbd5e1;
+}
+.chip-btn.chip-selected {
+    border-color: #3b82f6;
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+/* 操作菜单（长按/点击卡片弹出的 编辑/删除） */
+.action-menu-item {
+    padding: 12px 20px;
+    font-size: 0.85rem;
+    color: #1e293b;
+    cursor: pointer;
+    transition: 0.15s;
+}
+.action-menu-item:hover {
+    background: #f1f4f9;
+}
+.action-menu-item.danger {
+    color: #dc2626;
+    border-radius: 0 0 16px 16px;
+}
+.action-menu-item.danger:hover {
+    background: #fef2f2;
+}
+
+/* ---------- 主题色圆点行 ---------- */
+.theme-dots-row {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    padding: 4px 0;
+}
+.theme-dot {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #e2e8f0;
+    transition: 0.2s;
+}
+.theme-dot:hover {
+    transform: scale(1.15);
 }

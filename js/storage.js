@@ -92,16 +92,26 @@ function loadFromStorage() {
 
 /**
  * 保存数据到 localStorage
- * 
+ *
  * 知识点：
  * - JSON.stringify(obj)：将对象转换为 JSON 字符串
  * - localStorage.setItem(key, value)：保存数据
- * 
+ *
  * 注意：每次修改数据后都要调用此函数
+ *
+ * 异常保护：隐私模式 / 存储配额已满时 setItem 会抛异常，
+ * 这里捕获后只提示、不中断交互（数据仍在内存中可用）
  */
 function saveToStorage() {
-    // 将对象转为 JSON 字符串并保存
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(statusMap));
+    try {
+        // 将对象转为 JSON 字符串并保存
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(statusMap));
+    } catch (error) {
+        console.warn('保存到 localStorage 失败，本次修改仅在内存中生效:', error);
+        if (typeof showToast === 'function') {
+            showToast('⚠️ 本地保存失败，请勿刷新页面');
+        }
+    }
 }
 
 // ---------- 数据操作 ----------
@@ -139,17 +149,13 @@ function getStatus(year, month, day) {
  */
 function setStatus(year, month, day, status) {
     const key = formatDate(year, month, day);
-    
-    if (status === 'normal') {
-        // 普通状态：删除键（不存储）
-        delete statusMap[key];
-    } else {
-        // 加班或休息：保存状态
-        statusMap[key] = status;
-    }
-    
-    // 自动保存到 localStorage
-    saveToStorage();
+
+    // 改由 applyChanges 统一处理：它会写入历史栈（可 Ctrl+Z 撤销）并自动保存
+    applyChanges([{
+        key: key,
+        from: statusMap[key] || 'normal',
+        to: status
+    }]);
 }
 
 /**
@@ -204,19 +210,15 @@ function getTotalOvertime(year, month) {
  */
 function clearMonth(year, month) {
     const days = getDaysInMonth(year, month);
-    let cleared = 0;
-    
+    const changes = [];
+
     for (let day = 1; day <= days; day++) {
         const key = formatDate(year, month, day);
         if (statusMap[key]) {
-            delete statusMap[key];   // 删除标记
-            cleared++;               // 计数+1
+            changes.push({ key: key, from: statusMap[key], to: 'normal' });
         }
     }
-    
-    if (cleared > 0) {
-        saveToStorage();             // 有清除才保存
-    }
-    
-    return cleared;
+
+    // 整月清除记为一整批，撤销时一次性恢复
+    return applyChanges(changes);
 }

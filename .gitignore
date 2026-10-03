@@ -1,0 +1,12 @@
+# WorkBuddy 工作区数据（本地缓存、记忆日志，不入库）
+.workbuddy/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 依赖与临时文件
+node_modules/
+*.tmp
+*.bak
+*.log

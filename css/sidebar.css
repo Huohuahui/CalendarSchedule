@@ -154,11 +154,174 @@
     min-height: 60px;
 }
 
+/* ---------- 快速操作：2×2 紧凑宫格 ---------- */
+/*
+    把「今天 / 清除 / 模板 / 复制」四项排成两行两列，
+    总高度控制在原来两项竖排时的高度以内（约 132px）
+*/
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+
+/* 卡片内部改为「图标在左 + 两行文字在右」的横排，比竖排矮很多 */
+/* 注意：要盖掉 .side-panel.right .info-card 的 min-height:60px，
+   这里用更高特异性（.side-panel.right .quick-actions .info-card） */
+.side-panel.right .quick-actions .info-card,
+.quick-actions .info-card {
+    min-height: 0;
+    padding: 5px 8px;
+    gap: 6px;
+    cursor: pointer;
+    border-radius: 12px;
+    border-style: dashed;
+    border-color: rgba(203, 213, 225, 0.6);
+    flex-direction: row;      /* 横向排列 */
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    overflow: hidden;
+}
+
+/* 右侧文字块：名称 + 说明竖排 */
+.quick-actions .info-card .text-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+    flex: 1;
+}
+
+.quick-actions .info-card .icon {
+    font-size: 0.95rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: 0.2s;
+}
+
+.quick-actions .info-card .name {
+    font-size: 0.64rem;
+    font-weight: 600;
+    color: #475569;
+    line-height: 1.2;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: 0.2s;
+}
+
+.quick-actions .info-card .hint {
+    font-size: 0.46rem;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* 悬停：虚线转实线，并跟随当前主题色 */
+.quick-actions .info-card:hover {
+    border-style: solid;
+    border-color: var(--primary);
+    background: var(--primary-bg);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12);
+}
+.quick-actions .info-card:hover .icon {
+    transform: scale(1.12);
+}
+.quick-actions .info-card:hover .name {
+    color: var(--primary-dark);
+}
+
+.quick-actions .info-card:active {
+    transform: scale(0.96);
+}
+
 /* ---------- 分割线 ---------- */
 hr.divider {
     border: none;
     border-top: 1.5px dashed rgba(203, 213, 225, 0.5);
     margin: 4px 0;
+}
+
+/* ---------- 天气模块 ---------- */
+.weather-module {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.weather-header {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.5px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e9edf3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.weather-refresh {
+    font-size: 0.55rem;
+    color: #94a3b8;
+    cursor: pointer;
+    font-weight: 400;
+}
+.weather-refresh:hover {
+    color: #64748b;
+}
+.weather-body {
+    flex: 1;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: center;
+}
+.weather-loading {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-align: center;
+    padding: 12px 0;
+}
+
+/* ---------- 问候语 ---------- */
+.greeting-module {
+    border-top: 1px solid #f1f4f9;
+    padding-top: 10px;
+    margin-top: 4px;
+}
+.greeting-text {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: center;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* ---------- 当前时间 ---------- */
+.clock-module {
+    border-top: 1px solid #f1f4f9;
+    padding-top: 10px;
+    margin-top: 4px;
+}
+.clock-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0f172a;
+    text-align: center;
+    letter-spacing: 1px;
+}
+.clock-date {
+    font-size: 0.55rem;
+    color: #94a3b8;
+    text-align: center;
+    margin-top: 2px;
 }
 
 /* ---------- 响应式 ---------- */
@@ -194,6 +357,11 @@ hr.divider {
         min-width: 70px;
         min-height: 40px;
         padding: 8px 10px;
+    }
+    /* 小屏时宫格占满整行，仍保持两列 */
+    .quick-actions {
+        width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .side-panel.right {
         flex: 1 1 auto;

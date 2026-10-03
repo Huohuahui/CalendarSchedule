@@ -18,6 +18,18 @@
 let dragData = null;
 
 /**
+ * 本次拖拽是否成功落到了某个日期上
+ * 用途：dragend 会在 drop 之后触发，若不加以区分，
+ *      会把「标记成功」的提示覆盖成「拖拽结束」
+ */
+let dragDropped = false;
+
+/**
+ * 本次拖拽累计标记的日期数（用于结束时给出汇总提示）
+ */
+let dragDropCount = 0;
+
+/**
  * 设置拖拽功能
  * 
  * 知识点：
@@ -32,8 +44,10 @@ let dragData = null;
 function setupDragDrop(overtimeBtn, restBtn, onDrop) {
     // ---------- 按钮：拖拽开始 ----------
     function handleDragStart(e, type) {
-        // 保存拖拽类型
+        // 记录拖拽类型，并重置本次拖拽的落点统计
         dragData = { type: type };
+        dragDropped = false;
+        dragDropCount = 0;
         
         // 创建自定义拖拽图像
         const clone = document.createElement('div');
@@ -75,11 +89,14 @@ function setupDragDrop(overtimeBtn, restBtn, onDrop) {
         dragData = null;  // 清空拖拽状态
         
         // 清除所有日期格子的高亮
-        document.querySelectorAll('.day-cell.drag-over').forEach(el => {
-            el.classList.remove('drag-over');
-        });
+        clearDragHighlights();
         
-        showToast('💡 拖拽结束');
+        // 只有「没有落到任何日期上」才提示结束，
+        // 否则会冲掉 drop 里刚刚显示的成功提示
+        if (!dragDropped) {
+            showToast('💡 拖拽已取消');
+        }
+        dragDropped = false;
     }
     
     overtimeBtn.addEventListener('dragend', handleDragEnd);
@@ -89,13 +106,16 @@ function setupDragDrop(overtimeBtn, restBtn, onDrop) {
     const daysGrid = document.getElementById('daysGrid');
     
     // dragenter：拖拽进入时高亮
+    // 注意：日历当前只渲染当月格子（不渲染跨月），
+    //  formerly 这里判断的 dataset.isOther 从未被写入过，导致高亮永远不生效，已移除该判断
     daysGrid.addEventListener('dragenter', function(e) {
         e.preventDefault();
         const target = e.target.closest('.day-cell');
         if (!target) return;
+        if (target.classList.contains('empty-cell')) return;
         
-        // 只有拖拽中且不是其他月份才高亮
-        if (dragData && target.dataset.isOther === 'false') {
+        // 拖拽进行中且格子有日期时才高亮
+        if (dragData && target.dataset.year) {
             target.classList.add('drag-over');
         }
     }, true);  // 使用捕获阶段
@@ -127,24 +147,24 @@ function setupDragDrop(overtimeBtn, restBtn, onDrop) {
         // 检查是否在拖拽中
         if (!dragData) return;
         
-        // 检查是否为其他月份
-        if (target.dataset.isOther === 'true') {
-            showToast('📅 仅可标记当月日期');
-            return;
-        }
-        
         // 获取日期数据
         const year = parseInt(target.dataset.year);
         const month = parseInt(target.dataset.month);
         const day = parseInt(target.dataset.day);
+        if (!year || !month || !day) return;
+        
         const status = dragData.type;
         
-        // 保存状态
+        // 保存状态（多选模式下拖拽同样只作用于落点当天）
         setStatus(year, month, day, status);
+        
+        dragDropped = true;
+        dragDropCount++;
         
         // 显示提示
         const label = status === 'overtime' ? '🌙 加班' : '☀️ 休息';
         showToast(`${year}/${month}/${day} → ${label} (拖拽)`);
+        
         
         // 执行回调（重新渲染日历、更新进度）
         if (onDrop) {

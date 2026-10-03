@@ -1,0 +1,26 @@
+{
+    "name": "加班/休息标记日历",
+    "short_name": "排班日历",
+    "description": "标记每月加班与休息日，追踪基础目标与额外加班进度",
+    "lang": "zh-CN",
+    "start_url": "../index.html",
+    "scope": "../",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#eef2f7",
+    "theme_color": "#3b82f6",
+    "icons": [
+        {
+            "src": "../icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "../icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

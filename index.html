@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>加班/休息标记日历</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/calendar.css">
@@ -13,10 +13,13 @@
     <!-- 网站图标 -->
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+    <!-- iOS 添加到主屏的图标（SVG favicon 在 iOS 上不生效） -->
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <!-- PWA manifest -->
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="pwa/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#3b82f6">
 </head>
 
 <body>
@@ -75,19 +78,13 @@
             <hr class="divider">
 
             <!-- ===== 倒计时模块 ===== -->
-            <div
-                style="background:rgba(248,250,252,0.7);border-radius:16px;padding:10px 18px;border:none;min-height:80px;display:flex;flex-direction:column;">
-                <div
-                    style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid rgba(226,232,240,0.6);">
-                    <span
-                        style="font-size:0.7rem;font-weight:700;color:#94a3b8;letter-spacing:0.5px;text-transform:uppercase;">⏱️
-                        倒计时</span>
-                    <span id="addCountdownBtn"
-                        style="font-size:0.65rem;color:#3b82f6;cursor:pointer;transition:0.2s;padding:0 4px;font-weight:500;"
-                        onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#3b82f6'">✚ 添加</span>
+            <div class="countdown-module">
+                <div class="countdown-header">
+                    <span class="countdown-title">⏱️ 倒计时</span>
+                    <span id="addCountdownBtn" class="countdown-add">✚ 添加</span>
                 </div>
-                <div id="countdownList" style="flex:1;min-height:40px;">
-                    <div style="font-size:0.65rem;color:#94a3b8;text-align:center;padding:8px 0;">暂无倒计时，点击 ✚ 添加</div>
+                <div id="countdownList" class="countdown-list">
+                    <div class="countdown-empty">暂无倒计时，点击 ✚ 添加</div>
                 </div>
             </div>
         </div>
@@ -117,22 +114,16 @@
 
             <!-- ===== 底部操作栏 ===== -->
             <div class="footer-bar">
-                <div
-                    style="display:flex; gap:6px; align-items:center; font-size:0.7rem; color:#94a3b8; flex-wrap:wrap;">
-                    <span>💡 点击切换</span>
-                    <span style="opacity:0.3;">|</span>
-                    <span>🔄 拖拽批量</span>
-                    <span style="opacity:0.3;">|</span>
-                    <span id="exportData" style="font-size:0.6rem;color:#94a3b8;cursor:pointer;transition:0.2s;"
-                        onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#94a3b8'">💾
-                        导出</span>
-                    <span style="font-size:0.5rem;color:#e2e8f0;">|</span>
-                    <span id="importData" style="font-size:0.6rem;color:#94a3b8;cursor:pointer;transition:0.2s;"
-                        onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#94a3b8'">📂
-                        导入</span>
+                <div class="footer-hints">
+                    <span id="undoBtn" class="footer-link">↩︎ 撤销</span>
+                    <span class="hint-sep">·</span>
+                    <span id="exportBtn" class="footer-link">💾 导出</span>
+                    <span class="hint-sep">·</span>
+                    <span id="importBtn" class="footer-link">📂 导入</span>
                 </div>
                 <div class="action-group">
                     <button class="action-btn clear-btn" id="clearMonthBtn">🗑️ 清除</button>
+                    <button class="action-btn multi-btn" id="multiSelectBtn">☑️ 多选</button>
                     <button class="action-btn overtime-btn" id="markOvertimeBtn" draggable="true">🌙 加班</button>
                     <button class="action-btn rest-btn" id="markRestBtn" draggable="true">☀️ 休息</button>
                 </div>
@@ -144,74 +135,66 @@
         <div class="side-panel right" id="rightPanel">
             <div class="panel-title">📋 快速操作</div>
 
-            <div class="info-card" style="cursor:pointer;" id="quickToday">
-                <span class="icon">📍</span>
-                <span>跳转到今天</span>
-                <span class="hint" id="todayDateDisplay">点击跳转</span>
+            <!-- 四项快速操作排成 2×2 宫格，图标在左文字在右，尽量压缩高度 -->
+            <div class="quick-actions">
+                <div class="info-card" id="quickToday" title="跳转到今天">
+                    <span class="icon">📍</span>
+                    <span class="text-wrap">
+                        <span class="name">今天</span>
+                        <span class="hint" id="todayDateDisplay">点击跳转</span>
+                    </span>
+                </div>
+
+                <div class="info-card" id="quickClear" title="清空本月的所有标记">
+                    <span class="icon">🧹</span>
+                    <span class="text-wrap">
+                        <span class="name">清除</span>
+                        <span class="hint">清空本月</span>
+                    </span>
+                </div>
+
+                <div class="info-card" id="quickTemplate" title="套用排班模板（上五休二等）">
+                    <span class="icon">📋</span>
+                    <span class="text-wrap">
+                        <span class="name">模板</span>
+                        <span class="hint">一键套用</span>
+                    </span>
+                </div>
+
+                <div class="info-card" id="quickCopyPrev" title="把上个月的排班复制到本月">
+                    <span class="icon">📄</span>
+                    <span class="text-wrap">
+                        <span class="name">复制</span>
+                        <span class="hint">上月排班</span>
+                    </span>
+                </div>
             </div>
 
-            <div class="info-card" style="cursor:pointer;" id="quickClear">
-                <span class="icon">🧹</span>
-                <span>清除本月</span>
-                <span class="hint">清空所有标记</span>
-            </div>
-<!-- ===== 主题色（超小版，无标题） ===== -->
-            <div style="display:flex;gap:4px;justify-content:center;padding:4px 0;">
-                <span data-theme="default" class="theme-dot" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="默认蓝" onclick="setTheme('default')"></span>
-                <span data-theme="red" class="theme-dot" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#ef4444;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="红色" onclick="setTheme('red')"></span>
-                <span data-theme="orange" class="theme-dot" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#f59e0b;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="橙色" onclick="setTheme('orange')"></span>
-                <span data-theme="green" class="theme-dot" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#22c55e;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="绿色" onclick="setTheme('green')"></span>
-                <span data-theme="purple" class="theme-dot" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="紫色" onclick="setTheme('purple')"></span>
-                <span data-theme="pink" class="theme-dot" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#ec4899;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="粉色" onclick="setTheme('pink')"></span>
-                <span data-theme="cyan" class="theme-dot" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#06b6d4;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="青色" onclick="setTheme('cyan')"></span>
-                <span data-theme="gray" class="theme-dot" style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#6b7280;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="灰色" onclick="setTheme('gray')"></span>
-            </div>
-            <!-- ===== 主题选择器 ===== -->
-            <!-- <div style="padding:8px 0;">
-                <div style="font-size:0.65rem;font-weight:600;color:#94a3b8;letter-spacing:0.5px;margin-bottom:6px;">🎨 主题色</div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <span data-theme="default" class="theme-dot" style="display:inline-block;width:28px;height:28px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="默认蓝" onclick="setTheme('default')"></span>
-                    <span data-theme="red" class="theme-dot" style="display:inline-block;width:28px;height:28px;border-radius:50%;background:#ef4444;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="红色" onclick="setTheme('red')"></span>
-                    <span data-theme="orange" class="theme-dot" style="display:inline-block;width:28px;height:28px;border-radius:50%;background:#f59e0b;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="橙色" onclick="setTheme('orange')"></span>
-                    <span data-theme="green" class="theme-dot" style="display:inline-block;width:28px;height:28px;border-radius:50%;background:#22c55e;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="绿色" onclick="setTheme('green')"></span>
-                    <span data-theme="purple" class="theme-dot" style="display:inline-block;width:28px;height:28px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="紫色" onclick="setTheme('purple')"></span>
-                    <span data-theme="pink" class="theme-dot" style="display:inline-block;width:28px;height:28px;border-radius:50%;background:#ec4899;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="粉色" onclick="setTheme('pink')"></span>
-                    <span data-theme="cyan" class="theme-dot" style="display:inline-block;width:28px;height:28px;border-radius:50%;background:#06b6d4;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="青色" onclick="setTheme('cyan')"></span>
-                    <span data-theme="gray" class="theme-dot" style="display:inline-block;width:28px;height:28px;border-radius:50%;background:#6b7280;cursor:pointer;border:2px solid #e2e8f0;transition:0.2s;" title="灰色" onclick="setTheme('gray')"></span>
-                </div>
-            </div> -->
+            <!-- ===== 主题色（超小版，圆点由 themes.js 生成） ===== -->
+            <div id="themeDots" class="theme-dots-row"></div>
 
             <hr class="divider">
 
             <!-- ===== 天气模块 ===== -->
-            <div style="flex:1; min-height:0; display:flex; flex-direction:column;">
-                <div
-                    style="font-size:0.7rem;font-weight:700;color:#475569;letter-spacing:0.5px;padding-bottom:8px;border-bottom:2px solid #e9edf3;display:flex;justify-content:space-between;align-items:center;">
+            <div class="weather-module">
+                <div class="weather-header">
                     <span>🌤️ 今日天气</span>
-                    <span id="weatherRefresh" style="font-size:0.55rem;color:#94a3b8;cursor:pointer;font-weight:400;">🔄
-                        刷新</span>
+                    <span id="weatherRefresh" class="weather-refresh">🔄 刷新</span>
                 </div>
-                <div id="weatherDisplay"
-                    style="flex:1;padding-top:10px;display:flex;flex-direction:column;gap:6px;justify-content:center;">
-                    <div style="font-size:0.8rem;color:#94a3b8;text-align:center;padding:12px 0;">⏳ 加载中...</div>
+                <div id="weatherDisplay" class="weather-body">
+                    <div class="weather-loading">⏳ 加载中...</div>
                 </div>
             </div>
 
             <!-- ===== 问候语 ===== -->
-            <div id="greetingContainer" style="border-top:1px solid #f1f4f9;padding-top:10px;margin-top:4px;">
-                <div id="greetingDisplay"
-                    style="font-size:1.1rem;font-weight:700;color:#0f172a;text-align:center;margin-bottom:4px;letter-spacing:0.5px;">
-                    ☀️ 上午好
-                </div>
+            <div class="greeting-module">
+                <div id="greetingDisplay" class="greeting-text">☀️ 上午好</div>
             </div>
 
             <!-- ===== 当前时间 ===== -->
-            <div style="border-top:1px solid #f1f4f9;padding-top:10px;margin-top:4px;">
-                <div id="clockDisplay"
-                    style="font-size:1rem;font-weight:600;color:#0f172a;text-align:center;letter-spacing:1px;">
-                    --:--:--
-                </div>
-                <div style="font-size:0.55rem;color:#94a3b8;text-align:center;margin-top:2px;">
+            <div class="clock-module">
+                <div id="clockDisplay" class="clock-text">--:--:--</div>
+                <div class="clock-date">
                     <span id="dateDisplay">----年--月--日</span>
                 </div>
             </div>
@@ -219,15 +202,18 @@
     </div>
 
     <!-- ========== 加载 JavaScript ========== -->
-    <script src="js/lunar-data/lunar-2026.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/storage.js"></script>
-    <script src="js/progress.js"></script>
-    <script src="js/calendar.js"></script>
-    <script src="js/dragDrop.js"></script>
-    <script src="js/themes.js"></script>
-    <script src="js/countdown.js"></script>
-    <script src="js/main.js"></script>
+    <!-- 农历算法库（lunar-javascript，约 300KB，本地 + 离线缓存，不阻塞渲染） -->
+    <script src="js/lunar.min.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/storage.js" defer></script>
+    <script src="js/history.js" defer></script>
+    <script src="js/progress.js" defer></script>
+    <script src="js/calendar.js" defer></script>
+    <script src="js/dragDrop.js" defer></script>
+    <script src="js/themes.js" defer></script>
+    <script src="js/countdown.js" defer></script>
+    <script src="js/templates.js" defer></script>
+    <script src="js/main.js" defer></script>
 
     <!-- 注册 Service Worker -->
     <script>
