@@ -3,12 +3,17 @@
  * sw.js - Service Worker
  * 作用：预缓存静态资源，支持离线访问
  * 策略：
- *   - 静态资源（CSS/JS/图标/HTML）：cache-first + 后台更新
+ *   - 页面导航（HTML）：network-first，在线时始终拿最新页面，
+ *     离线时回退到缓存的 index.html
+ *   - 静态资源（CSS/JS/图标）：cache-first + 后台更新（下次访问自动取新版）
  *   - 天气 API 等第三方请求：network-only（数据实时性要求高）
+ *
+ * 重要：修改了任何被缓存的资源后，请务必把 CACHE_NAME 的版本号 +1，
+ * 否则旧缓存会一直生效，用户看到的仍是老版本。
  * ============================================================
  */
 
-var CACHE_NAME = 'schedule-calendar-v2';
+var CACHE_NAME = 'schedule-calendar-v3';
 
 // 说明：Service Worker 必须放在站点根目录，否则它的作用范围（scope）
 // 只能覆盖自己所在的子目录，就无法缓存 index.html / css / js 了。
@@ -31,25 +36,32 @@ var PRECACHE_URLS = [
     './js/lunar.min.js',
     './js/utils.js',
     './js/storage.js',
+    './js/history.js',
     './js/progress.js',
     './js/calendar.js',
     './js/dragDrop.js',
     './js/themes.js',
     './js/countdown.js',
+    './js/templates.js',
     './js/main.js'
 ];
 
 // ---------- 安装：预缓存核心资源 ----------
 self.addEventListener('install', function (event) {
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(function (cache) {
-                return cache.addAll(PRECACHE_URLS);
-            })
-            .then(function () {
-                // 立即接管页面，不等旧 SW 退出
-                return self.skipWaiting();
-            })
+        caches.open(CACHE_NAME).then(function (cache) {
+            // 逐个缓存并容错：任一资源失败都不应导致整个安装失败
+            return Promise.all(
+                PRECACHE_URLS.map(function (url) {
+                    return cache.add(url).catch(function (err) {
+                        console.warn('[SW] 预缓存失败（已跳过）:', url, err);
+                    });
+                })
+            );
+        }).then(function () {
+            // 立即接管页面，不等旧 SW 退出
+            return self.skipWaiting();
+        })
     );
 });
 
@@ -74,35 +86,60 @@ self.addEventListener('activate', function (event) {
 
 // ---------- 拦截请求 ----------
 self.addEventListener('fetch', function (event) {
-    var url = new URL(event.request.url);
+    var request = event.request;
+
+    // 只处理 GET（避免缓存非幂等请求）
+    if (request.method !== 'GET') {
+        return;
+    }
+
+    var url = new URL(request.url);
 
     // 第三方 API（天气等）直接走网络，不缓存
     if (url.origin !== self.location.origin) {
         return;
     }
 
-    // 同源资源：cache-first，命中后在后台刷新
-    event.respondWith(
-        caches.match(event.request).then(function (cached) {
-            var fetchPromise = fetch(event.request)
+    // 页面导航：网络优先，保证在线时永远拿到最新 HTML；离线回退缓存
+    if (request.mode === 'navigate') {
+        event.respondWith(
+            fetch(request)
                 .then(function (response) {
-                    // 只缓存成功响应
                     if (response && response.status === 200) {
                         var clone = response.clone();
                         caches.open(CACHE_NAME).then(function (cache) {
-                            cache.put(event.request, clone);
+                            cache.put('./index.html', clone);
                         });
                     }
                     return response;
                 })
                 .catch(function () {
-                    // 网络失败且无缓存时，对页面请求回退到 index.html
-                    if (event.request.mode === 'navigate') {
-                        return caches.match('./index.html');
+                    return caches.match('./index.html');
+                })
+        );
+        return;
+    }
+
+    // 同源静态资源：cache-first，命中后在后台刷新（下次访问即取新版）
+    event.respondWith(
+        caches.match(request).then(function (cached) {
+            var network = fetch(request)
+                .then(function (response) {
+                    // 只缓存成功响应
+                    if (response && response.status === 200) {
+                        var clone = response.clone();
+                        caches.open(CACHE_NAME).then(function (cache) {
+                            cache.put(request, clone);
+                        });
                     }
+                    return response;
+                })
+                .catch(function () {
+                    // 网络失败时回退到缓存
+                    return cached;
                 });
 
-            return cached || fetchPromise;
+            return cached || network;
         })
     );
 });
