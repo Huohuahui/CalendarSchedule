@@ -477,7 +477,7 @@ function updateGreeting() {
 }
 
 // ============================================================
-// 天气模块（当前天气 + 4个关键时段预报 + 3天预报）
+// 天气模块（当前天气 + 4个关键时段预报 + 6天预报）
 // 带 10 分钟本地缓存 + 6 秒超时，避免每次进入都请求
 // ============================================================
 
@@ -488,6 +488,8 @@ function getCachedWeather() {
         var cache = JSON.parse(raw);
         if (!cache || !cache.fetchedAt || !cache.data) return null;
         if (Date.now() - cache.fetchedAt > WEATHER_CACHE_TTL) return null;
+        // 缓存的预报天数不足 6 天（旧版只存了 3 天）时视为失效，强制重新获取
+        if (!cache.data.daily || !cache.data.daily.time || cache.data.daily.time.length < 6) return null;
         return cache.data;
     } catch (e) {
         return null;
@@ -524,7 +526,7 @@ function fetchWeather(forceRefresh) {
         '&hourly=temperature_2m,weathercode' +
         '&daily=temperature_2m_max,temperature_2m_min,weathercode' +
         '&timezone=Asia/Shanghai' +
-        '&forecast_days=3';
+        '&forecast_days=6';
 
     // 6 秒超时，防止弱网下一直卡在「加载中」
     var controller = new AbortController();
@@ -693,48 +695,62 @@ function renderWeatherWithForecast(data) {
         container.appendChild(hourlyRow);
     }
 
-    // ========== 第三行：3天预报 ==========
+    // ========== 第三行：6天预报（分两排，每排 3 天，尺寸一致） ==========
     if (data.daily && data.daily.time && data.daily.time.length > 0) {
         var forecastTitle = document.createElement('div');
         forecastTitle.style.cssText = 'font-size:0.55rem;color:#94a3b8;padding-top:6px;padding-bottom:4px;border-top:1px solid #f1f4f9;margin-top:4px;';
-        forecastTitle.textContent = '📅 未来3天';
+        forecastTitle.textContent = '📅 未来6天';
         container.appendChild(forecastTitle);
-
-        var forecastRow = document.createElement('div');
-        forecastRow.style.cssText = 'display:flex;gap:4px;';
 
         var days = data.daily.time;
         var maxTemps = data.daily.temperature_2m_max;
         var minTemps = data.daily.temperature_2m_min;
         var dailyCodes = data.daily.weathercode;
         var weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+        var PER_ROW = 3;
+        var totalDays = Math.min(days.length, 6);
 
-        for (var k = 0; k < Math.min(days.length, 3); k++) {
-            var dateParts = days[k].split('-');
-            var d = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
-            var dayOfWeek = weekDays[d.getDay()];
+        for (var r = 0; r < Math.ceil(totalDays / PER_ROW); r++) {
+            var forecastRow = document.createElement('div');
+            forecastRow.style.cssText = 'display:flex;gap:4px;';
 
-            var dCode = dailyCodes[k] || 0;
-            var dw = weatherMap[dCode] || { text: '--', icon: '🌤️' };
-            var maxT = Math.round(maxTemps[k] || 0);
-            var minT = Math.round(minTemps[k] || 0);
+            for (var c = 0; c < PER_ROW; c++) {
+                var k = r * PER_ROW + c;
 
-            var fDayDiv = document.createElement('div');
-            fDayDiv.style.cssText = 'flex:1;text-align:center;background:#f8fafc;border-radius:8px;padding:6px 0;';
-            if (k === 0) {
-                fDayDiv.style.background = '#dbeafe';
+                // 末排不足 3 天时补空位，保证每格宽度与上排一致
+                if (k >= totalDays) {
+                    var spacer = document.createElement('div');
+                    spacer.style.cssText = 'flex:1;';
+                    forecastRow.appendChild(spacer);
+                    continue;
+                }
+
+                var dateParts = days[k].split('-');
+                var d = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+                var dayOfWeek = weekDays[d.getDay()];
+
+                var dCode = dailyCodes[k] || 0;
+                var dw = weatherMap[dCode] || { text: '--', icon: '🌤️' };
+                var maxT = Math.round(maxTemps[k] || 0);
+                var minT = Math.round(minTemps[k] || 0);
+
+                var fDayDiv = document.createElement('div');
+                fDayDiv.style.cssText = 'flex:1;text-align:center;background:#f8fafc;border-radius:8px;padding:6px 0;';
+                if (k === 0) {
+                    fDayDiv.style.background = '#dbeafe';
+                }
+
+                fDayDiv.innerHTML =
+                    '<div style="font-size:0.5rem;font-weight:600;color:#64748b;">' + dayOfWeek + '</div>' +
+                    '<div style="font-size:1rem;">' + dw.icon + '</div>' +
+                    '<div style="font-size:0.6rem;font-weight:600;color:#0f172a;">' + maxT + '°</div>' +
+                    '<div style="font-size:0.5rem;color:#94a3b8;">' + minT + '°</div>';
+
+                forecastRow.appendChild(fDayDiv);
             }
 
-            fDayDiv.innerHTML =
-                '<div style="font-size:0.5rem;font-weight:600;color:#64748b;">' + dayOfWeek + '</div>' +
-                '<div style="font-size:1rem;">' + dw.icon + '</div>' +
-                '<div style="font-size:0.6rem;font-weight:600;color:#0f172a;">' + maxT + '°</div>' +
-                '<div style="font-size:0.5rem;color:#94a3b8;">' + minT + '°</div>';
-
-            forecastRow.appendChild(fDayDiv);
+            container.appendChild(forecastRow);
         }
-
-        container.appendChild(forecastRow);
     }
 }
 
