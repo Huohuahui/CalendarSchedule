@@ -27,7 +27,7 @@ var markRestBtn = document.getElementById('markRestBtn');
 var clearMonthBtn = document.getElementById('clearMonthBtn');
 var multiSelectBtn = document.getElementById('multiSelectBtn');
 var undoBtn = document.getElementById('undoBtn');
-var quickToday = document.getElementById('quickToday');
+var quickTodo = document.getElementById('quickTodo');
 var quickClear = document.getElementById('quickClear');
 var quickTemplate = document.getElementById('quickTemplate');
 var quickCopyPrev = document.getElementById('quickCopyPrev');
@@ -41,9 +41,6 @@ function fullUpdate() {
     renderCalendar(currentYear, currentMonth);
     updateProgressBars(currentYear, currentMonth);
     updateUndoUI();     // 任何变更后同步撤销按钮状态
-    var today = getToday();
-    var el = document.getElementById('todayDateDisplay');
-    if (el) el.textContent = today.year + '/' + today.month + '/' + today.day;
 }
 
 function updateProgressBars(year, month) {
@@ -278,17 +275,25 @@ function exportData() {
         if (Array.isArray(cd)) countdowns = cd;
     } catch (e) { /* 忽略 */ }
 
-    if (statusCount === 0 && countdowns.length === 0) {
+    // 收集待办数据
+    var todos = [];
+    try {
+        var td = JSON.parse(localStorage.getItem('todoList') || '[]');
+        if (Array.isArray(td)) todos = td;
+    } catch (e) { /* 忽略 */ }
+
+    if (statusCount === 0 && countdowns.length === 0 && todos.length === 0) {
         showToast('⚠️ 没有数据可导出');
         return;
     }
 
     var payload = {
-        version: 2,
+        version: 3,
         app: 'schedule-calendar',
         exportedAt: new Date().toISOString(),
         statuses: statusMap,
         countdowns: countdowns,
+        todos: todos,
         theme: localStorage.getItem('calendar_theme') || 'default'
     };
 
@@ -305,7 +310,7 @@ function exportData() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    showToast('✅ 已导出 ' + statusCount + ' 个标记、' + countdowns.length + ' 个倒计时');
+    showToast('✅ 已导出 ' + statusCount + ' 个标记、' + countdowns.length + ' 个倒计时、' + todos.length + ' 个待办');
 }
 
 function importData() {
@@ -332,13 +337,15 @@ function importData() {
 
             var statuses = null;
             var countdowns = null;
+            var todos = null;
             var theme = null;
 
             if (data && typeof data === 'object' && !Array.isArray(data)) {
-                if (data.version === 2 && data.statuses) {
+                if ((data.version === 2 || data.version === 3) && data.statuses) {
                     // 新版完整备份
                     statuses = sanitizeStatusMap(data.statuses);
                     if (Array.isArray(data.countdowns)) countdowns = data.countdowns;
+                    if (Array.isArray(data.todos)) todos = data.todos.filter(isValidTodo);
                     if (typeof data.theme === 'string') theme = data.theme;
                 } else {
                     // 兼容旧版纯 map 格式
@@ -356,6 +363,7 @@ function importData() {
 
             var confirmMessage = '确定要导入数据吗？\n\n将导入 ' + Object.keys(statuses).length + ' 个标记'
                 + (countdowns ? '、' + countdowns.length + ' 个倒计时' : '')
+                + (todos ? '、' + todos.length + ' 个待办' : '')
                 + '\n\n⚠️ 将覆盖当前全部数据！';
             if (!confirm(confirmMessage)) {
                 showToast('❌ 已取消导入');
@@ -366,6 +374,9 @@ function importData() {
             localStorage.setItem('workStatusMap', JSON.stringify(statuses));
             if (countdowns !== null) {
                 localStorage.setItem('countdownList', JSON.stringify(countdowns));
+            }
+            if (todos !== null) {
+                localStorage.setItem('todoList', JSON.stringify(todos));
             }
             if (theme) {
                 localStorage.setItem('calendar_theme', theme);
@@ -380,13 +391,18 @@ function importData() {
             if (countdowns !== null && typeof renderCountdownList === 'function') {
                 renderCountdownList();
             }
+            if (todos !== null && typeof loadTodos === 'function') {
+                loadTodos();
+                renderTodoBadge();
+            }
             if (theme && typeof loadTheme === 'function') {
                 loadTheme();
             }
             fullUpdate();
 
             showToast('✅ 成功导入 ' + Object.keys(statuses).length + ' 个标记'
-                + (countdowns ? '、' + countdowns.length + ' 个倒计时' : ''));
+                + (countdowns ? '、' + countdowns.length + ' 个倒计时' : '')
+                + (todos ? '、' + todos.length + ' 个待办' : ''));
         };
         reader.readAsText(file);
     };
@@ -779,7 +795,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     todayBtn.addEventListener('click', goToToday);
-    quickToday.addEventListener('click', goToToday);
+
+    // 快速操作「待办」：打开待办事项总览弹窗
+    if (quickTodo) {
+        quickTodo.addEventListener('click', openTodoModal);
+    }
 
     markOvertimeBtn.addEventListener('click', function () {
         handleMarkAction('overtime');
@@ -884,4 +904,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 初始化倒计时功能
     initCountdown();
+
+    // 初始化待办事项（加载数据 + 刷新侧栏卡片徽标）
+    if (typeof initTodo === 'function') initTodo();
 });

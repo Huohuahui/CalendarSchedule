@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/progress.css">
     <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/todo.css">
     <!-- 网站图标 -->
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
@@ -137,11 +138,11 @@
 
             <!-- 四项快速操作排成 2×2 宫格，图标在左文字在右，尽量压缩高度 -->
             <div class="quick-actions">
-                <div class="info-card" id="quickToday" title="跳转到今天">
-                    <span class="icon">📍</span>
+                <div class="info-card" id="quickTodo" title="打开待办事项总览">
+                    <span class="icon">📝</span>
                     <span class="text-wrap">
-                        <span class="name">今天</span>
-                        <span class="hint" id="todayDateDisplay">点击跳转</span>
+                        <span class="name">待办</span>
+                        <span class="hint" id="todoBadge">点击查看</span>
                     </span>
                 </div>
 
@@ -213,6 +214,7 @@
     <script src="js/themes.js" defer></script>
     <script src="js/countdown.js" defer></script>
     <script src="js/templates.js" defer></script>
+    <script src="js/todo.js" defer></script>
     <script src="js/main.js" defer></script>
 
     <!-- 注册 Service Worker -->
