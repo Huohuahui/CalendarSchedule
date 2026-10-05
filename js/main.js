@@ -907,4 +907,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 初始化待办事项（加载数据 + 刷新侧栏卡片徽标）
     if (typeof initTodo === 'function') initTodo();
+
+    // 初始化待办「临近提醒」（刷新 / 切回标签页 / 页面停留定时检查）
+    if (typeof initTodoReminder === 'function') initTodoReminder();
 });
