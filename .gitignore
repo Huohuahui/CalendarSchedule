@@ -1,8 +1,9 @@
 # WorkBuddy 工作区数据（本地缓存、记忆日志，不入库）
+.workbuddy/
+
 # 版本库自身（git 语义上本就忽略，这里显式写出，
 # 防止任何按 .gitignore 扫描目录的脚本把 .git 一并打包上传）
 .git/
-.workbuddy/
 
 # 系统文件
 .DS_Store
