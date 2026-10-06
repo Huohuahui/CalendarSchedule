@@ -13,7 +13,7 @@
  * ============================================================
  */
 
-var CACHE_NAME = 'schedule-calendar-v9';
+var CACHE_NAME = 'schedule-calendar-v10';
 
 // 说明：Service Worker 必须放在站点根目录，否则它的作用范围（scope）
 // 只能覆盖自己所在的子目录，就无法缓存 index.html / css / js 了。
@@ -34,6 +34,7 @@ var PRECACHE_URLS = [
     './css/progress.css',
     './css/themes.css',
     './css/todo.css',
+    './css/backup.css',
     './js/lunar.min.js',
     './js/utils.js',
     './js/storage.js',
@@ -48,6 +49,9 @@ var PRECACHE_URLS = [
     './js/todo.js',
     './js/todo-reminder.js',
     './js/weather-location.js',
+    './js/backup.js',
+    './js/cloud-config.js',
+    './js/cloud-backup.js',
     './js/main.js'
 ];
 

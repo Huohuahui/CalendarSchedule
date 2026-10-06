@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/progress.css">
     <link rel="stylesheet" href="css/themes.css">
     <link rel="stylesheet" href="css/todo.css">
+    <link rel="stylesheet" href="css/backup.css">
     <!-- 网站图标 -->
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
@@ -125,7 +126,7 @@
                 <div class="footer-hints">
                     <span id="undoBtn" class="footer-link">↩︎ 撤销</span>
                     <span class="hint-sep">·</span>
-                    <span id="exportBtn" class="footer-link">💾 导出</span>
+                    <span id="backupBtn" class="footer-link" title="备份 / 恢复数据">💾 备份</span>
                     <span class="hint-sep">·</span>
                     <span id="importBtn" class="footer-link">📂 导入</span>
                 </div>
@@ -227,6 +228,9 @@
     <script src="js/todo.js" defer></script>
     <script src="js/todo-reminder.js" defer></script>
     <script src="js/weather-location.js" defer></script>
+    <script src="js/backup.js" defer></script>
+    <script src="js/cloud-config.js" defer></script>
+    <script src="js/cloud-backup.js" defer></script>
     <script src="js/main.js" defer></script>
 
     <!-- 注册 Service Worker -->

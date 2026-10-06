@@ -1,0 +1,280 @@
+/* ============================================================
+   backup.css - 备份中心 与 云备份
+   复用 calendar.css 的 .modal-* 体系；颜色走主题变量
+   ============================================================ */
+
+/* ---------- 页脚「备份」入口的在期提示 ---------- */
+.footer-link.backup-due {
+    color: #dc2626;
+    font-weight: 700;
+    position: relative;
+}
+
+.footer-link.backup-due::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: -6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #dc2626;
+}
+
+/* ---------- 弹窗 ---------- */
+.backup-box {
+    max-width: 420px;
+}
+
+.backup-desc {
+    font-size: 0.72rem;
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+/* ---------- 状态卡 ---------- */
+.backup-status {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+}
+
+.backup-status.due {
+    background: #fffbeb;
+    border-color: #fcd34d;
+}
+
+.backup-status-line {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 8px;
+}
+
+.backup-status.due .backup-status-line {
+    color: #92400e;
+}
+
+.backup-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 0.68rem;
+    line-height: 1.7;
+}
+
+.backup-row-label {
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+
+.backup-row-value {
+    color: #334155;
+    font-weight: 600;
+    text-align: right;
+    word-break: break-all;
+}
+
+/* ---------- 分组标题 ---------- */
+.backup-sub {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #64748b;
+    margin: 4px 0 8px;
+    letter-spacing: 0.04em;
+}
+
+/* ---------- 操作按钮行 ---------- */
+.backup-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.backup-actions .modal-btn {
+    flex: 1;
+    padding: 9px 10px;
+    font-size: 0.74rem;
+    white-space: nowrap;
+}
+
+/* ---------- 文本框 ---------- */
+.backup-textarea {
+    width: 100%;
+    min-height: 130px;
+    resize: vertical;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.66rem;
+    line-height: 1.5;
+    margin-bottom: 14px;
+}
+
+/* ---------- 关闭 ---------- */
+.backup-close-btn {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 8px 0;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 0.72rem;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.backup-close-btn:hover {
+    color: #64748b;
+}
+
+/* ============================================================
+   云备份区块（档 2）
+   ============================================================ */
+
+.backup-cloud-host:empty {
+    display: none;
+}
+
+.cloud-section {
+    border-top: 1px dashed #e2e8f0;
+    margin-top: 14px;
+    padding-top: 12px;
+}
+
+.cloud-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.cloud-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.cloud-note {
+    font-size: 0.66rem;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.cloud-state {
+    font-size: 0.68rem;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+.cloud-state strong {
+    color: #0f172a;
+}
+
+.cloud-state.err {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+/* 开关 */
+.cloud-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.66rem;
+    color: #64748b;
+    cursor: pointer;
+    user-select: none;
+}
+
+.cloud-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.cloud-switch-track {
+    width: 34px;
+    height: 19px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    position: relative;
+    transition: background 0.18s;
+    flex-shrink: 0;
+}
+
+.cloud-switch-track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.18s;
+}
+
+.cloud-switch input:checked + .cloud-switch-track {
+    background: var(--primary, #3b82f6);
+}
+
+.cloud-switch input:checked + .cloud-switch-track::after {
+    transform: translateX(15px);
+}
+
+.cloud-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.cloud-actions .modal-btn {
+    flex: 1;
+    padding: 9px 10px;
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.cloud-links {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.cloud-link {
+    font-size: 0.66rem;
+    color: var(--primary, #3b82f6);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.cloud-link:hover {
+    opacity: 0.75;
+}
+
+@media (max-width: 480px) {
+    .backup-box {
+        max-width: none;
+    }
+    .backup-actions {
+        flex-direction: column;
+    }
+    .cloud-actions {
+        flex-direction: column;
+    }
+}

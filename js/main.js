@@ -280,42 +280,16 @@ function sanitizeStatusMap(raw) {
 function exportData() {
     var statusCount = Object.keys(statusMap).length;
 
-    // 收集倒计时数据
-    var countdowns = [];
-    try {
-        var cd = JSON.parse(localStorage.getItem('countdownList') || '[]');
-        if (Array.isArray(cd)) countdowns = cd;
-    } catch (e) { /* 忽略 */ }
-
-    // 收集待办数据
-    var todos = [];
-    try {
-        var td = JSON.parse(localStorage.getItem('todoList') || '[]');
-        if (Array.isArray(td)) todos = td;
-    } catch (e) { /* 忽略 */ }
-
-    // 收集排班方案（目标规则 / 预设）
-    var planData = null;
-    try {
-        var pl = localStorage.getItem('schedulePlan');
-        if (pl) planData = JSON.parse(pl);
-    } catch (e) { /* 忽略 */ }
+    // 统一由 backup.js 收集完整数据（含倒计时 / 待办 / 排班方案 / 主题）
+    var payload = collectBackupPayload();
+    var countdowns = payload.countdowns;
+    var todos = payload.todos;
+    var planData = payload.plan;
 
     if (statusCount === 0 && countdowns.length === 0 && todos.length === 0 && !planData) {
         showToast('⚠️ 没有数据可导出');
         return;
     }
-
-    var payload = {
-        version: 4,
-        app: 'schedule-calendar',
-        exportedAt: new Date().toISOString(),
-        statuses: statusMap,
-        countdowns: countdowns,
-        todos: todos,
-        plan: planData,
-        theme: localStorage.getItem('calendar_theme') || 'default'
-    };
 
     var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
@@ -329,6 +303,9 @@ function exportData() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    // 记一笔「已备份」，用于备份中心的状态与提醒
+    markBackedUp();
 
     showToast('✅ 已导出 ' + statusCount + ' 个标记、' + countdowns.length + ' 个倒计时、' + todos.length + ' 个待办'
         + (planData ? '、排班方案' : ''));
@@ -356,84 +333,10 @@ function importData() {
                 return;
             }
 
-            var statuses = null;
-            var countdowns = null;
-            var todos = null;
-            var planData = null;
-            var theme = null;
-
-            if (data && typeof data === 'object' && !Array.isArray(data)) {
-                if ((data.version === 2 || data.version === 3 || data.version === 4) && data.statuses) {
-                    // 新版完整备份
-                    statuses = sanitizeStatusMap(data.statuses);
-                    if (Array.isArray(data.countdowns)) countdowns = data.countdowns;
-                    if (Array.isArray(data.todos)) todos = data.todos.filter(isValidTodo);
-                    if (data.plan && typeof data.plan === 'object') planData = sanitizePlanData(data.plan);
-                    if (typeof data.theme === 'string') theme = data.theme;
-                } else {
-                    // 兼容旧版纯 map 格式
-                    statuses = sanitizeStatusMap(data);
-                }
-            }
-
-            if (!statuses || Object.keys(statuses).length === 0) {
-                showToast('❌ 没有有效的排班数据');
-                return;
-            }
-
-            // 导入前先留一份当前数据的快照，防止误导入无法回退
-            var backup = localStorage.getItem('workStatusMap');
-
-            var confirmMessage = '确定要导入数据吗？\n\n将导入 ' + Object.keys(statuses).length + ' 个标记'
-                + (countdowns ? '、' + countdowns.length + ' 个倒计时' : '')
-                + (todos ? '、' + todos.length + ' 个待办' : '')
-                + (planData ? '、1 套排班方案' : '')
-                + '\n\n⚠️ 将覆盖当前全部数据！';
-            if (!confirm(confirmMessage)) {
-                showToast('❌ 已取消导入');
-                return;
-            }
-
-            // 只写入清洗后的数据，非法键一律不进 localStorage
-            localStorage.setItem('workStatusMap', JSON.stringify(statuses));
-            if (countdowns !== null) {
-                localStorage.setItem('countdownList', JSON.stringify(countdowns));
-            }
-            if (todos !== null) {
-                localStorage.setItem('todoList', JSON.stringify(todos));
-            }
-            if (planData !== null) {
-                localStorage.setItem('schedulePlan', JSON.stringify(planData));
-            }
-            if (theme) {
-                localStorage.setItem('calendar_theme', theme);
-            }
-
-            // 万一导入出错，可从控制台打印的快照手动恢复
-            if (backup) {
-                console.log('[导入备份] 导入前的数据快照：', backup);
-            }
-
-            loadFromStorage();   // 重新加载并清洗 statusMap
-            if (countdowns !== null && typeof renderCountdownList === 'function') {
-                renderCountdownList();
-            }
-            if (todos !== null && typeof loadTodos === 'function') {
-                loadTodos();
-                renderTodoBadge();
-            }
-            if (theme && typeof loadTheme === 'function') {
-                loadTheme();
-            }
-            if (planData !== null && typeof refreshPlanUI === 'function') {
-                refreshPlanUI();
-            }
-            fullUpdate();
-
-            showToast('✅ 成功导入 ' + Object.keys(statuses).length + ' 个标记'
-                + (countdowns ? '、' + countdowns.length + ' 个倒计时' : '')
-                + (todos ? '、' + todos.length + ' 个待办' : '')
-                + (planData ? '、排班方案' : ''));
+            // 校验 / 清洗 / 写入 / 刷新 一律交给 backup.js，
+            // 与「粘贴文本导入」共用同一套逻辑，避免两处实现漂移
+            var res = applyImportedBackup(data);
+            if (!res.cancelled) showToast(res.msg);
         };
         reader.readAsText(file);
     };
@@ -939,13 +842,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // 启动时钟 + 问候
     startClock();
 
-    // 导出/导入（元素 id 已改为 exportBtn/importBtn，避免与同名函数冲突）
-    var exportLink = document.getElementById('exportBtn');
+    // 导入：仍保留一个直达入口；「导出」已并入备份中心（js/backup.js）
     var importLink = document.getElementById('importBtn');
-
-    if (exportLink) {
-        exportLink.addEventListener('click', exportData);
-    }
     if (importLink) {
         importLink.addEventListener('click', importData);
     }
@@ -964,4 +862,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 初始化排班方案（目标天数定制入口）
     if (typeof initPlan === 'function') initPlan();
+
+    // 初始化备份中心（状态 / 提醒 / 导出导入 / 云备份入口）
+    if (typeof initBackup === 'function') initBackup();
+
+    // 初始化云备份（已开启且域名允许时，恢复登录态）
+    if (typeof initCloudBackup === 'function') initCloudBackup();
 });
