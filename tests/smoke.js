@@ -125,14 +125,19 @@ async function runAll(port) {
   ok('页脚有「关于」入口', !!d.getElementById('aboutLink'));
   ok('页脚有「隐私政策」入口', !!d.getElementById('privacyLink'));
   const appFooter = d.querySelector('.app-footer');
+  const cssCalendar = fs.readFileSync(path.join(ROOT, 'css/calendar.css'), 'utf8');
   ok('页脚信息含版本与许可',
     !!appFooter && appFooter.textContent.indexOf('MIT 开源许可') >= 0,
     appFooter ? appFooter.textContent : '');
-  ok('页脚信息在日历盒子内（用于填掉下方留白）',
-    !!d.querySelector('.calendar-wrapper > .app-footer'));
-  ok('日历盒子是纵向 flex（页脚才能贴到底部）',
-    /\.calendar-wrapper\s*\{[^}]*flex-direction:\s*column/.test(
-      fs.readFileSync(path.join(ROOT, 'css/calendar.css'), 'utf8')));
+  ok('页脚信息在日历盒子内', !!d.querySelector('.calendar-wrapper > .app-footer'));
+  ok('页脚为两行（版本+许可 / 文档入口）',
+    appFooter.querySelectorAll('.app-footer-line').length === 2,
+    'got ' + appFooter.querySelectorAll('.app-footer-line').length);
+  ok('页脚居中', /\.app-footer\s*\{[^}]*text-align:\s*center/.test(cssCalendar));
+  ok('页脚紧贴操作区（不再用 margin-top:auto 贴底）',
+    !/\.app-footer\s*\{[^}]*margin-top:\s*auto/.test(cssCalendar));
+  ok('页脚链接带下划线（与文档页风格一致）',
+    /\.app-footer a\s*\{[^}]*text-decoration:\s*underline/.test(cssCalendar));
   ok('操作栏已回到 3 项（关于移入页脚信息）',
     d.querySelectorAll('.footer-hints .footer-link').length === 3,
     'got ' + d.querySelectorAll('.footer-hints .footer-link').length);

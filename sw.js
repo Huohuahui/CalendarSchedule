@@ -13,7 +13,7 @@
  * ============================================================
  */
 
-var CACHE_NAME = 'schedule-calendar-v13';
+var CACHE_NAME = 'schedule-calendar-v14';
 
 // 说明：Service Worker 必须放在站点根目录，否则它的作用范围（scope）
 // 只能覆盖自己所在的子目录，就无法缓存 index.html / css / js 了。
