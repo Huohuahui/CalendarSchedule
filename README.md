@@ -93,8 +93,6 @@
 ├── icons/                # PWA 图标（192 / 512 / apple-touch）
 ├── pwa/
 │   └── manifest.json     # Web App Manifest
-├── docs/                 # 项目文档
-│   └── 代码审查报告.html
 └── tests/                # 冒烟测试（开发用，不参与发布产物）
     ├── README.md         # 怎么跑、覆盖范围、已知边界
     └── smoke.js          # 整站体检脚本
@@ -102,7 +100,8 @@
 
 > **关于根目录**：一般文件都进对应子目录，但有 4 个文件按规范必须放在根目录、无法移动：
 > `sw.js`（Service Worker 的作用范围只能覆盖自己所在目录）、`robots.txt` 与 `sitemap.xml`（爬虫只认根目录）、
-> `LICENSE`（开源许可的惯例位置）。其余内容全部按 `css/ js/ icons/ pwa/ pages/ docs/` 分目录。
+> `LICENSE`（开源许可的惯例位置）。其余内容全部按 `css/ js/ icons/ pwa/ pages/ tests/` 分目录
+> （内部文档保存在本地 `docs/`，不随仓库发布）。
 
 ## 🔍 SEO 与收录
 
