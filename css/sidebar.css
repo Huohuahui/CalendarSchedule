@@ -428,6 +428,60 @@ hr.divider {
     padding-top: 8px;
 }
 
+/* ---------- 首次定位说明卡 ---------- */
+.geo-intro-box {
+    max-width: 330px;
+}
+.geo-intro-desc {
+    font-size: 0.72rem;
+    color: #475569;
+    line-height: 1.5;
+    text-align: center;
+    margin: -4px 0 12px;
+}
+.geo-intro-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    padding: 11px 12px;
+    margin-bottom: 12px;
+}
+.geo-intro-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    font-size: 0.66rem;
+    color: #475569;
+    line-height: 1.45;
+}
+.geo-intro-icon {
+    flex: none;
+    font-size: 0.72rem;
+    line-height: 1.35;
+}
+.geo-intro-text {
+    flex: 1;
+    min-width: 0;
+}
+.geo-intro-note {
+    font-size: 0.6rem;
+    color: #94a3b8;
+    line-height: 1.5;
+    border-top: 1px solid #f1f4f9;
+    padding-top: 8px;
+    margin-bottom: 12px;
+}
+.geo-intro-actions .modal-btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+}
+.geo-intro-actions .modal-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
 /* ---------- 问候语 ---------- */
 .greeting-module {
     border-top: 1px solid #f1f4f9;

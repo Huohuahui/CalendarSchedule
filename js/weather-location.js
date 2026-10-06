@@ -270,6 +270,23 @@ function reverseGeocode(lat, lon) {
 }
 
 /**
+ * 回退到默认城市并加载天气（不打分弹窗，供说明卡「跳过」时使用）
+ */
+function useDefaultLocation() {
+    if (!loadWeatherLocation()) {
+        saveWeatherLocation({
+            mode: DEFAULT_LOCATION.mode,
+            name: DEFAULT_LOCATION.name,
+            latitude: DEFAULT_LOCATION.latitude,
+            longitude: DEFAULT_LOCATION.longitude,
+            updatedAt: Date.now()
+        });
+    }
+    renderWeatherLocName();
+    fetchWeather(true);
+}
+
+/**
  * 请求定位
  * @param {boolean} silent 静默模式（已授权时后台更新坐标，失败不打扰用户）
  * @param {Function} [done] 回调 (ok, loc)
@@ -368,6 +385,108 @@ function searchCities(q) {
             })
             .catch(function (e) { clearTimeout(tid); reject(e); });
     });
+}
+
+// ============================================================
+// 首次访问的「定位说明」卡
+// ------------------------------------------------------------
+// 为什么需要它：浏览器原生的权限弹窗由浏览器渲染，网页**无法修改**它的
+// 文案（通常只有一句「xxx 想要获取您的位置」+ 站点域名）。所以我们在
+// 请求定位之前先展示自己的说明卡，讲清「仅用于获取天气地点」，用户点了
+// 「允许定位」之后，浏览器才会弹它自己的那个窗。
+// ============================================================
+
+function closeGeoIntro() {
+    var el = document.getElementById('geoIntro');
+    if (el) el.remove();
+}
+
+function geoIntroItem(icon, text) {
+    var row = document.createElement('div');
+    row.className = 'geo-intro-item';
+    var i = document.createElement('span');
+    i.className = 'geo-intro-icon';
+    i.textContent = icon;
+    var t = document.createElement('span');
+    t.className = 'geo-intro-text';
+    t.textContent = text;                 // textContent 防注入
+    row.appendChild(i);
+    row.appendChild(t);
+    return row;
+}
+
+/**
+ * 展示定位说明卡
+ * @param {string} permState 'prompt' | 'denied' | 'unknown' | 'granted'
+ */
+function showGeoIntro(permState) {
+    closeGeoIntro();
+    var denied = permState === 'denied';
+
+    var overlay = document.createElement('div');
+    overlay.id = 'geoIntro';
+    overlay.className = 'modal-overlay';
+
+    var box = document.createElement('div');
+    box.className = 'modal-box geo-intro-box';
+
+    var title = document.createElement('div');
+    title.className = 'modal-title';
+    title.textContent = '📍 开启天气定位';
+    box.appendChild(title);
+
+    var desc = document.createElement('div');
+    desc.className = 'geo-intro-desc';
+    desc.textContent = '为了显示你所在城市的天气，需要获取大致位置（城市级即可）。';
+    box.appendChild(desc);
+
+    var list = document.createElement('div');
+    list.className = 'geo-intro-list';
+    list.appendChild(geoIntroItem('🔒', '仅用于获取天气所属城市，不做其它用途'));
+    list.appendChild(geoIntroItem('💾', '坐标只保存在本机浏览器，不会上传（本项目没有服务器）'));
+    list.appendChild(geoIntroItem('🌐', '天气数据来自第三方 open-meteo，请求时会带上该坐标'));
+    box.appendChild(list);
+
+    var note = document.createElement('div');
+    note.className = 'geo-intro-note';
+    note.textContent = denied
+        ? '浏览器此前已拒绝本站定位，需点击地址栏的锁形图标重新开启；也可以直接手动选城市。'
+        : '点「允许定位」后，浏览器会弹出它自己的权限请求（那个窗的文字本站改不了），请选「允许」。';
+    box.appendChild(note);
+
+    var actions = document.createElement('div');
+    actions.className = 'modal-btn-group geo-intro-actions';
+
+    var allowBtn = document.createElement('button');
+    allowBtn.type = 'button';
+    allowBtn.className = 'modal-btn modal-btn-primary';
+    allowBtn.id = 'geoIntroAllow';
+    allowBtn.textContent = denied ? '浏览器已拒绝定位' : '📡 允许定位（仅用于天气）';
+    allowBtn.disabled = denied;
+    allowBtn.onclick = function () {
+        closeGeoIntro();
+        var el = document.getElementById('weatherLocName');
+        if (el) el.textContent = '定位中…';
+        requestGeolocation(false);
+    };
+    actions.appendChild(allowBtn);
+
+    var manualBtn = document.createElement('button');
+    manualBtn.type = 'button';
+    manualBtn.className = 'modal-btn modal-btn-cancel';
+    manualBtn.id = 'geoIntroManual';
+    manualBtn.textContent = '手动选择城市';
+    manualBtn.onclick = function () {
+        closeGeoIntro();
+        useDefaultLocation();      // 先落地默认城市，保证天气能显示
+        openCityPicker();
+    };
+    actions.appendChild(manualBtn);
+
+    box.appendChild(actions);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    overlay.onclick = function (e) { if (e.target === overlay) overlay.remove(); };
 }
 
 // ============================================================
@@ -587,7 +706,15 @@ function initWeatherLocation() {
     if (locBtn) locBtn.addEventListener('click', openCityPicker);
 
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeCityPicker();
+        if (e.key !== 'Escape') return;
+        // 说明卡开着时，Esc = 不做定位，直接用默认城市（避免卡在「定位中…」）
+        if (document.getElementById('geoIntro')) {
+            closeGeoIntro();
+            useDefaultLocation();
+            showToast('📍 已使用默认城市，点城市名可切换');
+            return;
+        }
+        closeCityPicker();
     });
 
     var saved = loadWeatherLocation();
@@ -605,8 +732,16 @@ function initWeatherLocation() {
         return;
     }
 
-    // 首次访问：显示「定位中…」，请求定位（浏览器会弹权限框）
-    var el = document.getElementById('weatherLocName');
-    if (el) el.textContent = '定位中…';
-    requestGeolocation(false);
+    // 首次访问：先查权限状态，再决定怎么问
+    checkGeoPermission(function (state) {
+        if (state === 'granted') {
+            // 已授权 → 浏览器不会再弹窗，直接拿坐标
+            var el = document.getElementById('weatherLocName');
+            if (el) el.textContent = '定位中…';
+            requestGeolocation(false);
+            return;
+        }
+        // 未决定 / 已被拒绝 → 先展示我们自己的说明卡（含「仅用于天气」说明）
+        showGeoIntro(state);
+    });
 }
