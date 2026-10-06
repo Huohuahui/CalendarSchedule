@@ -121,8 +121,9 @@
 - 天气与城市地理编码来自 [Open-Meteo](https://open-meteo.com/)，坐标反查城市名来自 [BigDataCloud](https://www.bigdatacloud.com/)，
   二者均为外部服务，**不包含在本项目源码中**。
 
-> ⚠️ **上线前请替换占位符**：`LICENSE`、`pages/about.html`、`pages/privacy.html` 中有若干标注为「请填写」的地方
-> （运营者名称、联系邮箱）。隐私政策里的联系方式若留空，会明显削弱其合规效力。
+> 📌 **运营者与联系方式**：隐私政策与关于页中的运营者名称使用项目网名 `Huohuahui`，
+> 联系方式指向本仓库的 [Issues](https://github.com/Huohuahui/CalendarSchedule/issues)（真实可达、不暴露个人邮箱）。
+> 若将来涉及商业化或大规模个人信息收集，建议补充一个可识别的责任主体与专用联系邮箱。
 
 ## 🚀 快速开始
 

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="EFUg9IRU6czWseVT7Br4u0">
+
+<head data-page-node-id="OqNib5BMEmeoLFFCogr3eL">
+    <meta charset="UTF-8" data-page-node-id="R9L65ob2UR1yos5lWVFhqk">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="OBNi4HZfDNASlMisjScxtB">
+    <title>排班计划表 · 代码复审与上线 / 小程序移植评估报告</title>
+    <style>
+        :root {
+            --ink: #0f172a;
+            --ink-2: #334155;
+            --ink-3: #64748b;
+            --line: #e2e8f0;
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --brand: #3b82f6;
+            --brand-soft: #eff6ff;
+            --ok: #16a34a;
+            --ok-soft: #ecfdf5;
+            --warn: #d97706;
+            --warn-soft: #fffbeb;
+            --bad: #dc2626;
+            --bad-soft: #fef2f2;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            line-height: 1.75;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .wrap { max-width: 960px; margin: 0 auto; padding: 40px 22px 80px; }
+
+        /* ---------- 封面 ---------- */
+        .hero {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: #fff;
+            border-radius: 20px;
+            padding: 38px 34px;
+            margin-bottom: 30px;
+            box-shadow: 0 18px 40px -20px rgba(30, 58, 138, .6);
+        }
+        .hero .kicker { font-size: .8rem; letter-spacing: .16em; text-transform: uppercase; opacity: .8; margin-bottom: 10px; }
+        .hero h1 { margin: 0 0 12px; font-size: 1.72rem; line-height: 1.35; letter-spacing: -.01em; }
+        .hero p { margin: 0; opacity: .92; font-size: .95rem; }
+        .hero .meta { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
+        .hero .meta span {
+            background: rgba(255, 255, 255, .16);
+            border: 1px solid rgba(255, 255, 255, .25);
+            border-radius: 999px;
+            padding: 4px 14px;
+            font-size: .78rem;
+        }
+
+        /* ---------- 评分卡 ---------- */
+        .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 32px; }
+        .score {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 18px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .score::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--brand); }
+        .score.a::before { background: var(--ok); }
+        .score.b::before { background: var(--brand); }
+        .score.c::before { background: var(--warn); }
+        .score.d::before { background: var(--bad); }
+        .score .label { font-size: .78rem; color: var(--ink-3); margin-bottom: 6px; }
+        .score .grade { font-size: 1.5rem; font-weight: 800; letter-spacing: -.02em; }
+        .score .grade small { font-size: .8rem; font-weight: 500; color: var(--ink-3); margin-left: 6px; }
+        .score .note { font-size: .76rem; color: var(--ink-3); margin-top: 6px; }
+
+        /* ---------- 通用版式 ---------- */
+        h2 {
+            font-size: 1.28rem;
+            margin: 46px 0 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--line);
+            letter-spacing: -.01em;
+        }
+        h2 .num {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; border-radius: 8px;
+            background: var(--brand); color: #fff;
+            font-size: .82rem; margin-right: 10px; vertical-align: 2px;
+            font-weight: 700;
+        }
+        h3 { font-size: 1.02rem; margin: 26px 0 10px; color: var(--ink); }
+        h4 { font-size: .9rem; margin: 18px 0 8px; color: var(--ink-2); }
+        p { margin: 10px 0; color: var(--ink-2); }
+        ul, ol { margin: 10px 0; padding-left: 22px; color: var(--ink-2); }
+        li { margin: 5px 0; }
+        code {
+            background: #eef2f7; border-radius: 5px; padding: 1px 6px;
+            font-family: "SFMono-Regular", Consolas, monospace; font-size: .84em;
+            color: #b91c1c;
+        }
+        strong { color: var(--ink); }
+        a { color: var(--brand); }
+
+        /* ---------- 卡片 / 提示块 ---------- */
+        .card {
+            background: var(--card); border: 1px solid var(--line);
+            border-radius: 14px; padding: 20px 22px; margin: 16px 0;
+        }
+        .callout { border-radius: 12px; padding: 14px 18px; margin: 16px 0; font-size: .9rem; border-left: 4px solid; }
+        .callout.info { background: var(--brand-soft); border-color: var(--brand); }
+        .callout.ok { background: var(--ok-soft); border-color: var(--ok); }
+        .callout.warn { background: var(--warn-soft); border-color: var(--warn); }
+        .callout.bad { background: var(--bad-soft); border-color: var(--bad); }
+        .callout b { color: var(--ink); }
+
+        /* ---------- 表格 ---------- */
+        .tbl-wrap { overflow-x: auto; margin: 16px 0; border-radius: 12px; border: 1px solid var(--line); }
+        table { width: 100%; border-collapse: collapse; background: var(--card); font-size: .86rem; }
+        th, td { padding: 10px 13px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+        th { background: #f8fafc; font-weight: 700; color: var(--ink); white-space: nowrap; }
+        tr:last-child td { border-bottom: none; }
+        td code { font-size: .82em; }
+
+        /* ---------- 标签 ---------- */
+        .tag { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+        .tag.p0 { background: var(--bad-soft); color: var(--bad); }
+        .tag.p1 { background: var(--warn-soft); color: var(--warn); }
+        .tag.p2 { background: #f1f5f9; color: var(--ink-3); }
+        .tag.ok { background: var(--ok-soft); color: var(--ok); }
+        .tag.brand { background: var(--brand-soft); color: var(--brand); }
+
+        /* ---------- 指标条 ---------- */
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 18px 0; }
+        .metric { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; text-align: center; }
+        .metric .v { font-size: 1.35rem; font-weight: 800; color: var(--brand); letter-spacing: -.02em; }
+        .metric .k { font-size: .74rem; color: var(--ink-3); margin-top: 2px; }
+
+        /* ---------- 时间线 ---------- */
+        .timeline { position: relative; padding-left: 30px; margin: 18px 0; }
+        .timeline::before { content: ""; position: absolute; left: 9px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
+        .tl-item { position: relative; margin-bottom: 20px; }
+        .tl-item::before {
+            content: ""; position: absolute; left: -26px; top: 6px;
+            width: 12px; height: 12px; border-radius: 50%;
+            background: #fff; border: 3px solid var(--brand);
+        }
+        .tl-item .tl-title { font-weight: 700; font-size: .94rem; }
+        .tl-item .tl-sub { font-size: .82rem; color: var(--ink-3); }
+
+        hr.soft { border: none; border-top: 1px dashed var(--line); margin: 34px 0; }
+        .foot { text-align: center; color: var(--ink-3); font-size: .78rem; margin-top: 50px; }
+
+        @media (max-width: 560px) {
+            .hero { padding: 26px 20px; }
+            .hero h1 { font-size: 1.32rem; }
+            .wrap { padding: 22px 14px 60px; }
+        }
+    </style>
+</head>
+
+<body data-page-node-id="U3KFxvVFmg3wMXFgWFIvX5">
+<div class="wrap" data-page-node-id="H7lW7FMADyiMSeS9rhH95B">
+
+    <!-- ========== 封面 ========== -->
+    <div class="hero" data-page-node-id="xLv5UDi4foGCvazZcv51UI">
+        <div class="kicker" data-page-node-id="9btTIUimsPLbv1gjjVQg4r">Code Review &amp; Go-to-Market Assessment</div>
+        <h1 data-page-node-id="oERR9AtJtETLL09Ob0QBCC">排班计划表 · 代码复审<br data-page-node-id="q0vfqw6Mw46F2lWa9tlvWT">与「上线开站 / 移植小程序」可行性评估报告</h1>
+        <p data-page-node-id="6NeKsKciuqbDRjn5Tz95Q5">面向公开用户的发布前技术尽调：代码健康度、产品短板、Web 上线就绪度、微信小程序移植工作量与风险。</p>
+        <div class="meta" data-page-node-id="mqeGS3gXb8wY0xJhIa7z3X">
+            <span data-page-node-id="fgCimV6pEPxRu6Qv2U1FaR">📅 2026-10-06</span>
+            <span data-page-node-id="myxAtaOgAfsvZgExGiwtm8">📦 16 个 JS / 6 个 CSS / 8,507 行</span>
+            <span data-page-node-id="VIyZbOOXkreajOtUYtgjMk">🌐 线上：huohuahui.github.io/CalendarSchedule</span>
+        </div>
+    </div>
+
+    <!-- ========== 评分卡 ========== -->
+    <div class="score-grid" data-page-node-id="BWGFjwkkL9tsgmaT4egpwc">
+        <div class="score b" data-page-node-id="YRaW3Isl2fvahI7ijtIjRS">
+            <div class="label" data-page-node-id="59OmZ1eMV21nMjNZhzHMNj">代码质量</div>
+            <div class="grade" data-page-node-id="SoKNA8ren5bcgMo7nK9ihn">B+ <small data-page-node-id="Fl72ajhxCKNNYr7tW8dwTm">良好</small></div>
+            <div class="note" data-page-node-id="sDEct0eiawLEfFt8FLfCH0">结构清晰、防御到位；短板是全局命名空间与风格不统一</div>
+        </div>
+        <div class="score a" data-page-node-id="BaPNzai0LcBjeRK4LcJkYQ">
+            <div class="label" data-page-node-id="IIYHJoM4fQPOWT0gDuN3xZ">Web 上线就绪度</div>
+            <div class="grade" data-page-node-id="UD0vvDfYlPNsAIFHwrsHgI">A− <small data-page-node-id="THYvQxcM1Cb52jAgdwpVxs">接近可发布</small></div>
+            <div class="note" data-page-node-id="bhmoyRL51WYSXwLCDFFufD">技术上已能上线，缺隐私政策页与运营基建</div>
+        </div>
+        <div class="score c" data-page-node-id="OJLO80Ir79Avg2BZ5Fd0hu">
+            <div class="label" data-page-node-id="XZ6KVDKfHRM97sqR1ILtBg">小程序移植就绪度</div>
+            <div class="grade" data-page-node-id="GexmpdfNY0ueTKZNJPlBpH">C <small data-page-node-id="REPH83movqviwwqTlz64Ba">需重写视图层</small></div>
+            <div class="note" data-page-node-id="Dy9mMH2cqTyuFTyt1lmwGE">不是「移植」而是「重写界面 + 复用逻辑」</div>
+        </div>
+        <div class="score c" data-page-node-id="QOVoHdOGOS1ZeVBuGv6gEk">
+            <div class="label" data-page-node-id="GJxhHj93KxdB0P4VWWLJeZ">产品/运营成熟度</div>
+            <div class="grade" data-page-node-id="aS2juoGhATSkZ5mzzG1zNE">C+ <small data-page-node-id="MfEwOUAeje09MjfViQnc6B">裸奔状态</small></div>
+            <div class="note" data-page-node-id="STVpc8K5i7XPX5oj8YZDG0">无埋点、无监控、无用户体系、无同步</div>
+        </div>
+    </div>
+
+    <!-- ========== 一、执行摘要 ========== -->
+    <h2 data-page-node-id="pmjhUNTH2UXjN6RPQ9DOMF"><span class="num" data-page-node-id="CtoVDyQjw8HtEZNaYWlCm7">一</span>执行摘要</h2>
+
+    <div class="callout ok" data-page-node-id="wFSzvMvIsqdWNSELnB0V4N">
+        <b data-page-node-id="CDJx4o5LOaIcTzDH0a7Cpw">一句话结论：</b>项目代码质量扎实、功能密度远超同类工具，<b data-page-node-id="N9A0AkrPtl0aBIfx7lQD7c">Web 端随时可以对外发布</b>；
+        但在「面向大众」这件事上还差三块拼图 —— <b data-page-node-id="hTar7nwNHTYyM323T5fQx6">隐私政策与合规、运营基建（监控/埋点/引导）、数据云同步</b>。
+        至于小程序，<b data-page-node-id="3pRDFXOTVCWesvnnTUwaVi">不存在「一键移植」</b>：业务逻辑可复用约 50%，界面层需要整体重写，单人全职约 <b data-page-node-id="Ibu13f0z1AVFpJ5TPXvr7A">4–6 周</b>。
+    </div>
+
+    <div class="metrics" data-page-node-id="1n1r2CJkweCGpQoA27lfS9">
+        <div class="metric" data-page-node-id="QCZAAyNodGC9YtnBX20dDT"><div class="v" data-page-node-id="XITa50xpFjYnrB0PakYI7K">8,507</div><div class="k" data-page-node-id="nP7ZntNmCQdnVoPF4pefHv">总代码行数</div></div>
+        <div class="metric" data-page-node-id="JEGAdoAoANCmSy8U0qv11k"><div class="v" data-page-node-id="2Q8vnf1sZDyr3qQnujonCe">16 / 16</div><div class="k" data-page-node-id="lZxSCB9ecNbyFRi5gIwUvu">JS 语法校验通过</div></div>
+        <div class="metric" data-page-node-id="ETVV9KvEcxnvx6A9qMIjg5"><div class="v" data-page-node-id="LdheJZIFHbzlrvYmgosg4h">0</div><div class="k" data-page-node-id="M3RJLRSZDKLpJ2FHMHOkZp">全局函数重名冲突</div></div>
+        <div class="metric" data-page-node-id="r0rAddynY5AMuWHrHcqhrQ"><div class="v" data-page-node-id="YXMAEAVib5HNkk0SDN95mR">300 KB</div><div class="k" data-page-node-id="Ko5qGQIeFoIQdVz4qQp9sA">农历库体积（占比 44%）</div></div>
+        <div class="metric" data-page-node-id="Zeh5Dq4Rd66FqB2c5MXMes"><div class="v" data-page-node-id="2FVKgXwC8F309iBPfUnQ8o">3</div><div class="k" data-page-node-id="YWLB8WCMJNnICvCH1a9oz4">外部网络请求点</div></div>
+        <div class="metric" data-page-node-id="vc8ZXwPEQUlQAcm2Fd879Y"><div class="v" data-page-node-id="oaXr3kjl8E7fEE2FGcBAs2">0</div><div class="k" data-page-node-id="mxdTjPG4KQEp5NYTsdPAVl">自动化测试入库</div></div>
+    </div>
+
+    <!-- ========== 二、项目盘点 ========== -->
+    <h2 data-page-node-id="V3h0QgBdEex4dRcIclc69t"><span class="num" data-page-node-id="DVevIFNEovqNNlYxpYHtI4">二</span>项目现状盘点</h2>
+
+    <h3 data-page-node-id="1wWS3Pb2nAxr3fmWmDuq4A">2.1 规模与分层</h3>
+    <div class="tbl-wrap" data-page-node-id="0YhU68ZaXlOGUa9uDTQ6Wy">
+        <table data-page-node-id="fGmcda3jMhqrAlMjSdXZqB">
+            <thead data-page-node-id="tiC3yvaGwLeiPKiwuGzcSV">
+            <tr data-page-node-id="dLl5mGw23LEJd9QoHgw9g4"><th data-page-node-id="VLbDxp0vodziXQrGCcf3Ij">分层</th><th data-page-node-id="ZMUorcOKHDApjtR832Twgf">文件</th><th data-page-node-id="6ZnGMMO6BvoHCQ4iPY1Mab">职责</th><th data-page-node-id="jMEsU4FbGuTxi2ZBX1YK4M">规模</th></tr>
+            </thead>
+            <tbody data-page-node-id="1S5zS7P5keslRH39GpVHa4">
+            <tr data-page-node-id="DKj18JCpwNI8M5fm0BVWAE"><td rowspan="4" data-page-node-id="ACsc9RsEkKXh9m9nO4HHaY">视图层</td><td data-page-node-id="9GqW4AJvPmOJJfpsiJCBkM"><code data-page-node-id="LrI6bV3wKhYB9umB7ytJQ8">index.html</code></td><td data-page-node-id="i4HBLfo8JPoJzGUTL8afuu">唯一入口，按依赖顺序 <code data-page-node-id="HOcJVo13XSc9F65kNcyWM9">defer</code> 加载 16 个脚本</td><td data-page-node-id="FRGgCCTtFs48ieWVjq5Tci">246 行</td></tr>
+            <tr data-page-node-id="z2386uADVDqYFIkXUSEegY"><td data-page-node-id="jjC9v7eyJEQjY9vmBw9avA"><code data-page-node-id="oRyG7TXA9bARfXCANhdvCy">css/*.css</code>（6 个）</td><td data-page-node-id="QncSVI8wtUDmC6VNDj9lER">布局 / 日历 / 侧栏 / 进度 / 主题 / 待办</td><td data-page-node-id="dVGQwAHiBm6TYQioLXbgTD">72 KB</td></tr>
+            <tr data-page-node-id="gHfaGAZMtPGQsxwo7rUYCO"><td data-page-node-id="W6ppiRDHfu6OftaHiYuYZ3"><code data-page-node-id="KXnnXytBRuZMND86wbtcKW">js/calendar.js</code></td><td data-page-node-id="AN0uMwciAiFSx9tCvBrs8m">日历网格 + 农历节气渲染</td><td data-page-node-id="RfV9MrZhrfl4Wl6CgucYXc">304 行</td></tr>
+            <tr data-page-node-id="Z1ryUkcmbAjtaGOFIXTShE"><td data-page-node-id="iMR1sXH9oBfeRARZOP8HBY"><code data-page-node-id="z3Vyv6zR79nHuRGxVVQmal">js/dragDrop.js</code></td><td data-page-node-id="45zI8z4J8Afdl9yHg1dTw7">拖拽 / 多选批量标记</td><td data-page-node-id="YZMAYpWjA7pqj2Y4cnoYaz">190 行</td></tr>
+            <tr data-page-node-id="DVWevpHNPMX1jOFVMLuoIL"><td rowspan="6" data-page-node-id="b4crexCMGgUAHAArdTYnAM">业务层</td><td data-page-node-id="BwT4wpTYYJn07Mm0ME1ssK"><code data-page-node-id="w2HuWvfnMI0SHoIg7jojKU">js/storage.js</code></td><td data-page-node-id="QhEH1C3C4xhq0ml6eQp8Gr">localStorage 读写 + 数据清洗</td><td data-page-node-id="CfMDuRo82Rc5BwrLMfHoSC">223 行</td></tr>
+            <tr data-page-node-id="WiIdXVNQQ3DaX7VOjUy92m"><td data-page-node-id="y0pMiQO8LEg6Hju8nQQ9Qx"><code data-page-node-id="f0hZWKqhIlFKbDjasljBpm">js/history.js</code></td><td data-page-node-id="mQvmqwvBTPkccDJjyVcof0">撤销 / 重做栈（内存）</td><td data-page-node-id="efmN6z7YpAgBxGwaDG6CoG">91 行</td></tr>
+            <tr data-page-node-id="fnkExjsDSjFS5iZoHgOEvJ"><td data-page-node-id="KQVSDHG7Zv6V1MKlhDKFSh"><code data-page-node-id="f0XKHr3noyh6c47oTuHNvR">js/progress.js</code></td><td data-page-node-id="BdcuCu0MTW8wrsjTSkIoeH">基础 / 额外进度计算</td><td data-page-node-id="1Sp4dPuc6ag1HEaJSxM8Du">96 行</td></tr>
+            <tr data-page-node-id="xgwuFQaWVXv0NK4qC1KRN7"><td data-page-node-id="MFIs1lKVz6PcHDnOwiWeNt"><code data-page-node-id="FXp8EAZxrQpC9hSqg1RGq8">js/plan.js</code></td><td data-page-node-id="8vRF0TiEIgX7TMQOWIwkjd">可定制排班方案（规则求值 + 预设）</td><td data-page-node-id="JjrxatQcokPUsqN4RRwhjh">702 行</td></tr>
+            <tr data-page-node-id="AQ2wmgnuBeRTOiVff7VIeZ"><td data-page-node-id="q5a5B2UkK8BAW8tw0VIc7i"><code data-page-node-id="O4rBchItVIwTA9nAMXvZR0">js/todo.js</code></td><td data-page-node-id="78JiJAwZOM6YBAPtRrxSBa">待办事项 CRUD</td><td data-page-node-id="jzdcNOWHM1XBxXYSJo1BEh">530 行</td></tr>
+            <tr data-page-node-id="yEDQdROFiNIFwv5NoV7FZQ"><td data-page-node-id="HJFiJnEEoraR04Pkhkxbf7"><code data-page-node-id="J7zROYPF6AUiBmFbcD4Hjb">js/countdown.js</code></td><td data-page-node-id="tqDQuXfTZvo87q0PgK7o82">倒计时分类管理</td><td data-page-node-id="GV4qMaYatrQ999QaPulnv4">641 行</td></tr>
+            <tr data-page-node-id="n7nwKQcDjvgStu9gdEuiCh"><td rowspan="3" data-page-node-id="NioSgTlE4hJHnbDIwpBDJn">服务层</td><td data-page-node-id="CFQiCcn0xjg39InvtGQ0AI"><code data-page-node-id="lOkl9tylLUGyT5EXa8QWKD">js/todo-reminder.js</code></td><td data-page-node-id="GamjAIb9ASMNkJueNYtXRj">临近提醒（限额 + 悬浮卡）</td><td data-page-node-id="OUEBiEOIRLIekEEc6aB7rr">318 行</td></tr>
+            <tr data-page-node-id="7D5DtyLz09ik5VVtf9fEix"><td data-page-node-id="uHDoskUVNzRIhOrAhPkftF"><code data-page-node-id="9rUAnWcIuQWe5eqA2Uhk2N">js/weather-location.js</code></td><td data-page-node-id="f5KRUlMDpQ7tUkjy3pXtZq">定位 / 反查 / 108 城市 / 搜索</td><td data-page-node-id="nUQMuzFGurNjw5Ut85TUAD">747 行</td></tr>
+            <tr data-page-node-id="sGDiLyf7VA2BxigN4H6JmR"><td data-page-node-id="div3hhuEgcMMLdtcSpaHat"><code data-page-node-id="XED2DLOaQo4ejmewMyOII8">js/main.js</code></td><td data-page-node-id="k1B46i1p77Ht3ClZl7w8Ew">入口、天气、时钟、导入导出</td><td data-page-node-id="WLoIvaelNb8vB80gae5aFT">967 行</td></tr>
+            <tr data-page-node-id="8Xh4VVjakWNepDzBQu1EJM"><td rowspan="3" data-page-node-id="cTBY7FjuDfHHvPGZc3Bpyh">基座</td><td data-page-node-id="Rdds0NiMPZ4ZQtzlpR9rKD"><code data-page-node-id="GJHlbfBb7S6qG0EocGWqYt">js/lunar.min.js</code></td><td data-page-node-id="5CjWHyuePchihd1WOAwQj9">农历算法库（lunar-javascript 1.6.11）</td><td data-page-node-id="uag5Tzd7BEobaLzXWReNkx"><b data-page-node-id="6W1RNWdT2yiLhxuQQCFq4r">300 KB</b></td></tr>
+            <tr data-page-node-id="mHcRY9gC1wmXWBQnpDbhiV"><td data-page-node-id="AHD5vj70sCfHOJEEtDMAyT"><code data-page-node-id="CliNuzEBfZsESv5BlizHqJ">sw.js</code> v9</td><td data-page-node-id="OeGLHo79JgrQ2MpSdnkd8X">Service Worker 离线缓存</td><td data-page-node-id="jj241z4IcaZ40kQZdVqntZ">150 行</td></tr>
+            <tr data-page-node-id="5f53ha8eyLVnTyYNsGFw1s"><td data-page-node-id="vMMadk4gb6ra0OqNoq3VDK"><code data-page-node-id="qevgUUKVAQLqQNVzYwxoVg">pwa/manifest.json</code></td><td data-page-node-id="maZrNVcsp6WDbgUH1M2z2d">PWA 清单</td><td data-page-node-id="neX2QkHN3iOeShEjtD7hip">26 行</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 data-page-node-id="aT8nfpeHbl2zPOCZVgHsAd">2.2 架构特征</h3>
+    <ul data-page-node-id="Ev3KBMgNG3WNfvVc2JWjyg">
+        <li data-page-node-id="mPDlSWPSgwgOoavXSAK41y"><b data-page-node-id="PUhLwA4sXC6Qh33oklCYSH">纯静态零构建</b>：无打包、无框架、无 CDN 依赖，一个目录丢到任意静态托管即可运行 —— 这是最大的工程优势，也直接降低了上线与维护成本。</li>
+        <li data-page-node-id="GHHz1SqNYr8UBUuUpEjXhP"><b data-page-node-id="sFn8FnaDC7O2fGwOX81Xr5">全局脚本共享</b>：16 个脚本按顺序加载，162 个顶层函数 + 62 个顶层变量全部挂在 <code data-page-node-id="hEg1W5AeBAHhHGIIMjMNRB">window</code> 上，靠命名约定避免冲突（已核实<b data-page-node-id="na5jRv9C6OXFW4lAWfuY1U">当前无重名</b>）。</li>
+        <li data-page-node-id="LmlxYgPDSBSYJQDiMr6grz"><b data-page-node-id="fA6PPcNIcOIgujhHcJd1tL">数据全本地</b>：8 个 localStorage 键（<code data-page-node-id="cwZDJL9MtE1Dwz2F7WmlCf">workStatusMap</code> / <code data-page-node-id="TI6AXmql5zQxTN3gmFq2lt">countdownList</code> / <code data-page-node-id="yvrfCFCzFKMOp5lzTV2OmR">todoList</code> / <code data-page-node-id="5Rxw7yzhXilq452pkzWKJB">todoReminderLog</code> / <code data-page-node-id="4PewpsVC3dmN8oPwQcGtRB">schedulePlan</code> / <code data-page-node-id="Xz2w2Ru0jVPWYvTR0kYvUA">calendar_theme</code> / <code data-page-node-id="zPHqAT2qcVlxvtBpUPvZk0">weatherCache</code> / <code data-page-node-id="VIoluECcTfySqkN1f5Mbvj">weatherLocation</code>），零后端、零账号。</li>
+        <li data-page-node-id="fNhaesHkilreVEE3LH7PzG"><b data-page-node-id="fpztTWtMNIL7CkW9FKocFF">三处外部依赖</b>：open-meteo 天气、open-meteo 地理编码、bigdatacloud 坐标反查 —— 均为免费免 key 服务。</li>
+    </ul>
+
+    <!-- ========== 三、代码复审 ========== -->
+    <h2 data-page-node-id="OzoUijwNkt1ZHdyCft4BUf"><span class="num" data-page-node-id="u7uuoIHjiI0VHKrgg50TZv">三</span>代码复审</h2>
+
+    <h3 data-page-node-id="lfrgyTuvNJXojVIF9edzgX">3.1 值得肯定的部分</h3>
+    <div class="card" data-page-node-id="yHOgv6gTKhJvSGok22KeGT">
+        <ul style="margin:0" data-page-node-id="CeA4MLv6r8kels4mk7H5H7">
+            <li data-page-node-id="ZukPHhNO3H47pbMbXpUUNZ"><b data-page-node-id="cBC6x0xXkIWJKRwy4BLR7n">防御式数据清洗做得标准</b>：<code data-page-node-id="SELYOgSmQ952Fmu8eBRPB3">sanitizeStatusMap()</code>、<code data-page-node-id="yxq8rvx6F1u9DZgPOx3gEZ">sanitizePlanData()</code>、<code data-page-node-id="UvaL8lH6BA3zOIsZ94TShd">isValidTodo()</code> 三层校验，导入的脏数据（非法日期键、越界数字、超量条目）一律挡在 localStorage 之外。这类细节在同规模个人项目里很少见。</li>
+            <li data-page-node-id="B9YV4SL08dC8E5r9JEB1Yg"><b data-page-node-id="ZgRuD7e0Lh3W2I78MykaZr">异常保护覆盖到位</b>：所有 <code data-page-node-id="2TwcrB8DmK1rH5ZI3tbAf7">setItem</code> 都包了 <code data-page-node-id="uKnJ3fC19izB1xKDOEE7BV">try/catch</code>，隐私模式 / 配额满时静默降级并提示，不会白屏。</li>
+            <li data-page-node-id="zz99cJAeYmQzcxj5sFhGP2"><b data-page-node-id="6tRPkYdMlOMP2zs4v0bG10">时区处理正确</b>：<code data-page-node-id="cDqn0DgPum4XmszOpMFo07">parseDateOnly()</code> 手动拆解日期而非 <code data-page-node-id="sCNskGd1hYMnLtq6mkpA7P">new Date('YYYY-MM-DD')</code>，规避了 UTC 偏移导致「差一天」的经典坑；<code data-page-node-id="mnGorLbhmIgzzurERKmunM">getDaysInMonth()</code> 用 <code data-page-node-id="a8rp53rwQ14BHjvmGKqdo4">new Date(y, m, 0)</code> 取月末，写法地道。</li>
+            <li data-page-node-id="44YHeW4jCpxxbvTBg0dsre"><b data-page-node-id="c15tojij20f5QE9TXO662L">XSS 防护意识到位</b>：所有用户输入（待办标题/详情、方案名、城市名）一律走 <code data-page-node-id="9vOt1ZQQBlqKJ5e0mp0wEu">textContent</code>，未发现把用户数据拼进 <code data-page-node-id="kEseedfdVGWUOV7QJHezQ7">innerHTML</code> 的地方。</li>
+            <li data-page-node-id="sUn838cr4DnfA2B5SheS2P"><b data-page-node-id="fRIuw6JuenN5dGcZTe9Csk">撤销/重做设计克制</b>：只记录「变更差异」而非全量快照，批量操作合并为一条历史，内存占用小、撤销粒度符合直觉。</li>
+            <li data-page-node-id="H3fpWYHrsN9WBbsNHwdybF"><b data-page-node-id="lbJDL7cenHj6K6n9ngc9I3">农历方案选型正确</b>：放弃查表改用天文算法库，一次性解决跨年误差与节气错算（历史上曾错 14 处节气、缺 47 天）。</li>
+            <li data-page-node-id="0XyMMlzfj4wPkulVHOmQrM"><b data-page-node-id="IvvePukQVHKjNGo9cXjOAH">PWA 缓存策略成熟</b>：HTML 走 network-first（在线永远拿最新版）、静态资源走 cache-first + 后台更新，版本号升版流程已成文。这是踩过「线上丢样式」事故后沉淀的正确做法。</li>
+        </ul>
+    </div>
+
+    <h3 data-page-node-id="0Fgsm1GKUHpSGrGICJKojo">3.2 问题清单</h3>
+    <p data-page-node-id="VosYcgz6BfdNxjuGKDbBhU">按「是否影响发布 / 是否影响正确性」分级。本次复审<b data-page-node-id="vCzXSCGVHlMVzgoWRrTwwM">未发现 P0 级阻断性问题</b>（无崩溃、无数据丢失、无安全漏洞）。</p>
+
+    <div class="tbl-wrap" data-page-node-id="QihI5goSQmn1J4PlANBy70">
+        <table data-page-node-id="7zRL7aVZ74B1SudHvCa16h">
+            <thead data-page-node-id="6aKxLUoj5gZPHxEUVpc1eI">
+            <tr data-page-node-id="0DbSUsEd3iqCb3XE9qDu2k"><th style="width:56px" data-page-node-id="1uC6mPquakfcRMDTEBF4SY">等级</th><th data-page-node-id="pJEMvScaEb6gfLA124W0B3">问题</th><th data-page-node-id="D8UBOw1s4I3gzF4a8k9DI7">位置</th><th data-page-node-id="ETKPSQIclkXXFxxkc9CBhY">影响与建议</th></tr>
+            </thead>
+            <tbody data-page-node-id="Lt8zOpPyduYY1go47xyidp">
+            <tr data-page-node-id="hX8Q4LCSusSeOPJp2jODXR">
+                <td data-page-node-id="caK8pKTVhJxqvTZ7rt1ruW"><span class="tag p1" data-page-node-id="JUe02132CVxC0idJChyRA5">P1</span></td>
+                <td data-page-node-id="LP7533IDdJs4zoXaEdH2WO"><b data-page-node-id="av77zAFgERtDDC3h32QboM">主题色不跟随主题切换</b></td>
+                <td data-page-node-id="goQDIw950WnEIwfcsnDhqa"><code data-page-node-id="R2lPHuzRCRVN3hWsdjOB0H">countdown.js</code> 23 处、<code data-page-node-id="nyDC2ADf51IvJY3K8F8wB0">main.js</code> 19 处、<code data-page-node-id="JeZTE3qxyuCG9GPqMh3TXE">todo.js</code> 12 处内联样式</td>
+                <td data-page-node-id="rTYwfOt04ToU7zI31kHOK0">倒计时卡片、天气模块的颜色写死成 <code data-page-node-id="8AQfnCSTdJeg0b7gBn9zPN">#3b82f6</code>/<code data-page-node-id="w7swarVBJNXi0koUsyyhPN">#0f172a</code>，切到红/紫/绿主题时这些区域<b data-page-node-id="hoogjKJ2rQPT1Lrsl3Poed">不会变色</b>，与主题化设计意图冲突。建议把这些色值替换为 <code data-page-node-id="IQ5PGqNxvWiBFYWXXcBC5u">var(--primary)</code> 等主题变量（项目已有该变量体系）。</td>
+            </tr>
+            <tr data-page-node-id="dvMeXjU5OKpl9kFNAEbRvf">
+                <td data-page-node-id="D1FXDleFbyqDM0QK0I5mva"><span class="tag p1" data-page-node-id="GqPx4VSap6le3fl3WVDIGt">P1</span></td>
+                <td data-page-node-id="D84DrNM2t1PgvVCLz1FEsK"><b data-page-node-id="0aoarcSrMwGkoVYF7lSanu">全局命名空间裸露</b></td>
+                <td data-page-node-id="ZSHOOROdYfHmwwTa4Yfxvg">全部 16 个脚本</td>
+                <td data-page-node-id="Pn54ZV1cHslZI2mYoZVC0k">162 函数 + 62 变量全挂 <code data-page-node-id="78YXZLATWkLqsx81bUSupu">window</code>。当前无冲突，但每加一个功能撞名概率上升；且不利于被其他宿主（如小程序）复用。建议后续把「纯逻辑」模块包成 IIFE 命名空间（如 <code data-page-node-id="H4BpvkRGM4p1cRnBuXXAyp">window.SC.utils</code>），或至少给函数加统一前缀。</td>
+            </tr>
+            <tr data-page-node-id="1kLEjDAFufuSvaRWLjsjOH">
+                <td data-page-node-id="DqAFbQw1Vc2MPWfvG2GKYC"><span class="tag p1" data-page-node-id="GWExoJKELB6olE1qXLYXno">P1</span></td>
+                <td data-page-node-id="NkmS8WlNLliBgkdLH2jtHQ"><b data-page-node-id="PdAaUtvvp0dWve2tPdSaD0">代码风格双轨制</b></td>
+                <td data-page-node-id="gacc98sEDmnz0hnsFkFH0x"><code data-page-node-id="kJvsPsP1iPGovmqn2I8IrL">utils/storage/history/dragDrop</code>（ES6+）vs <code data-page-node-id="zECFHiUeUFYaWYOCs6BHt3">main/plan/todo/weather-location</code>（ES5）</td>
+                <td data-page-node-id="ZG3rXlnEPoF4YSziv7Jhd9">一半文件用 <code data-page-node-id="y3u2dHBmznt9VUrpFR2tKz">const/let</code>/箭头函数/模板字符串，另一半用 <code data-page-node-id="EQvTZsd2st4I2yYCah7IcD">var</code>/字符串拼接。维护时需反复切换心智模型。建议统一到 ES6+（现代浏览器与小程序均支持）。</td>
+            </tr>
+            <tr data-page-node-id="EBErSSMsrZBxYMEY0pJoMp">
+                <td data-page-node-id="E3AumwEuKF58j9uAXH87IB"><span class="tag p1" data-page-node-id="Jp8aD0HSawwWG8OLJJSocb">P1</span></td>
+                <td data-page-node-id="rpWESccPsAkmA4q1qUYQMB"><b data-page-node-id="A3IITJ8JeeSabAyahhG4Pg">零自动化测试入库</b></td>
+                <td data-page-node-id="CDBxHWepL31zpqTWaCCkU9">仓库内无测试文件</td>
+                <td data-page-node-id="NFkm9wj59T5YCpJBcYx7JX">历次开发都用 jsdom 跑了冒烟测试（曾达 66/66 通过），但脚本用完即删，<b data-page-node-id="237xY3uW7UO1ScghqGVln8">没有回归保障</b>。面向大众后每次改动都可能悄悄回归。建议把 jsdom 测试脚本固化进仓库（如 <code data-page-node-id="QG4saW7hVvlBrMaeqXvnOS">tests/</code>），至少覆盖：数据清洗、方案求值、提醒限额、导入导出。</td>
+            </tr>
+            <tr data-page-node-id="L8GYcrao4vICaZMGXmC5v3">
+                <td data-page-node-id="qSTqv0iM6hHVVMUk1NerRg"><span class="tag p1" data-page-node-id="NDJntxsg0aOE5dxofjsjeq">P1</span></td>
+                <td data-page-node-id="XYb1C25LDoWQO9DGg6brVi"><b data-page-node-id="TFhmmomlDRl3ZK2yU2jGSJ">无错误监控</b></td>
+                <td data-page-node-id="aB3d51ZJHj57O77raYEkn8">全局</td>
+                <td data-page-node-id="0CMBj1bB2oFEwjrDy6P4V8">线上 JS 报错静默吞掉，用户遇到白屏你无从得知。发布前建议接入 <code data-page-node-id="q39XRQz4SioW1uTdnRcRFp">window.onerror</code> / <code data-page-node-id="AtBs2GjTYN67X9vZqVwF5q">unhandledrejection</code> 上报（轻量自建或 Sentry）。</td>
+            </tr>
+            <tr data-page-node-id="OPq0Twt1lQ0yUDFuX4wQ2s">
+                <td data-page-node-id="d8jG8pZSYGpfS8zBS6EyuL"><span class="tag p2" data-page-node-id="h7zwS0cVCOUijYPJpm6aUQ">P2</span></td>
+                <td data-page-node-id="EWbhRSJJZ0zQdhLlxrDPKI">死代码残留</td>
+                <td data-page-node-id="s2CRCtyD42P8PdnYMWzUzL"><code data-page-node-id="IfodtggCje0bDh0F1zsgGb">utils.js</code> 的 <code data-page-node-id="PRGY20vdZ580sKIYHKBPVo">EXTRA_TARGET</code>；<code data-page-node-id="8VxtFT0ZBLgRRIUAQLUYqK">calendar.js</code> 的 <code data-page-node-id="emWE3mMx3KoBLiui8ja6T9">renderCalendar(onStatusChange)</code> 参数</td>
+                <td data-page-node-id="jsZSsW3n0wv1GKqhc6kQEy">已被 <code data-page-node-id="3v7Xqd4HkVuXXyfAHs9Iqy">getExtraTarget()</code> / 事件委托取代，参数无调用方。清理即可，无功能影响。</td>
+            </tr>
+            <tr data-page-node-id="8JFgGmGy3OcF3AYLNVEtOY">
+                <td data-page-node-id="bvTO8rO5EhXbmVjoyC1rhO"><span class="tag p2" data-page-node-id="unSI4IDf4Pjwxgfo6wtCHW">P2</span></td>
+                <td data-page-node-id="GYeMgqocammjAR8dYGWLEI">废弃 API</td>
+                <td data-page-node-id="FxeiX6BVOMjewAwJOMNPPF"><code data-page-node-id="QlToVE3DTJxMFx3hmtYG7n">countdown.js</code> 的 <code data-page-node-id="rgR1DVRLRRO3420XoN8xxL">String.substr()</code></td>
+                <td data-page-node-id="B9Gl3c4r8xkj6NDWcy6aiK">已废弃（但所有浏览器仍支持）。换成 <code data-page-node-id="Ow72IGGNYfB5D4An6r7x6D">slice()</code> 即可。</td>
+            </tr>
+            <tr data-page-node-id="l3kWapGvrn78vq0hwvSuVs">
+                <td data-page-node-id="r7pJuzJMISO46c6CaYKGjP"><span class="tag p2" data-page-node-id="Kb16dJYdQMZRBGeCt3lGf5">P2</span></td>
+                <td data-page-node-id="BF0hZgwGSerhOpZZ52N71M">Esc 监听器重复注册</td>
+                <td data-page-node-id="rPOfZXSm8XSWS6I5JsDXNY"><code data-page-node-id="4OXwWvShwdj2PhmUgtMwXw">plan.js</code>/<code data-page-node-id="UWrUv0Ac3bxOEBjMUVqeze">weather-location.js</code>/<code data-page-node-id="KlPjaLAgx6UcDjwWt7eD2Q">todo.js</code> 各注册一个 <code data-page-node-id="EQUuuaivY6EcnZTG4vQER8">keydown</code></td>
+                <td data-page-node-id="JAsNvvHtWtU6WRsAbFTYEE">4 处独立监听各自判断自己的弹窗，功能正常但略冗余。可合并为一个统一「关闭最上层浮层」管理器。</td>
+            </tr>
+            <tr data-page-node-id="UR1RI7vovwhyuabB7iiCw5">
+                <td data-page-node-id="zogvP4s5b6pW0foO7N2pw5"><span class="tag p2" data-page-node-id="ilDAosaJdigayGUTohbS3g">P2</span></td>
+                <td data-page-node-id="VK6KqwLoAMOgOphQxLvJvs">日历格子无键盘可达性</td>
+                <td data-page-node-id="pcDZbytU794y1YHaHKOQV0"><code data-page-node-id="8gkwN7lCvrYLZ0eAGmLafX">calendar.js</code> 日期格为 <code data-page-node-id="IvvEv7bkhr2ORuCpRQa9dZ">div</code> + click</td>
+                <td data-page-node-id="AFCXJxTSfXjfSLnHJeS3T0">键盘用户 / 读屏软件无法操作日历。面向大众建议补 <code data-page-node-id="hNBSBCBjuGAvg4d1X7Cqed">role="gridcell"</code>、<code data-page-node-id="aca5phESBUliw6GcUPWZW8">tabindex</code>、方向键导航。</td>
+            </tr>
+            <tr data-page-node-id="rVHlsnAvw4liVCy4FEAc4f">
+                <td data-page-node-id="PCl6HM4i9gBIzvzhE0xUtm"><span class="tag p2" data-page-node-id="hcRNmJsk14Vxi4dULrPSlJ">P2</span></td>
+                <td data-page-node-id="Pv4NhDVPC2ZXZ1mYgf7FWb">图标依赖系统 emoji</td>
+                <td data-page-node-id="2OVutAwX4LCsTcFDyvL0WQ">全局</td>
+                <td data-page-node-id="GlKq1wCtxtjVDi8iC6Bine">🌙☀️📝 等在 Windows / Android / iOS 渲染风格不一致，部分旧设备可能显示为方框。若要品牌化建议换 SVG 图标。</td>
+            </tr>
+            <tr data-page-node-id="BP8qM1vq60C6vzwydcImIH">
+                <td data-page-node-id="SeFDwbcQbyEbF8uSW8uCcK"><span class="tag p2" data-page-node-id="zbQB76MpXDiRKKGIRUfo3P">P2</span></td>
+                <td data-page-node-id="tJ83dHjT0QezSZYJNrhP63">缺 LICENSE / 无 SEO 元信息</td>
+                <td data-page-node-id="Z6H3pPPcz55HGD8BC0kStL">根目录 / <code data-page-node-id="H7cb0JNaWK1w5wes6c6DbW">index.html</code></td>
+                <td data-page-node-id="D5pXBgGgP3TrSz0Hx4Zmgy">无开源许可证（默认保留所有权利）；<code data-page-node-id="XCmlQumLWAgbUlLZD4K8K9">&lt;head&gt;</code> 缺 <code data-page-node-id="Gu2Gwzq21pTxPpL9cRX32T">description</code>、Open Graph 标签，分享到社交平台无摘要卡片。</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 data-page-node-id="lsjYRsBDICsNZX2BynNDsJ">3.3 已核实的「伪问题」（避免误判）</h3>
+    <div class="callout info" data-page-node-id="o7G01zaYuhLZezeHqkGefL">
+        <p style="margin:6px 0" data-page-node-id="c8tTAjjXddmE1vgBtIg8GR"><b data-page-node-id="zleZPNl8vvDNTnS7qIo9MB">① storage.js 加载顺序在 history.js 之前，却调用 applyChanges() —— 会报错吗？</b><br data-page-node-id="MgLC3rO8tuGwBLUDb8H7cP">
+        不会。<code data-page-node-id="hiYh0HuKRnXPYSjQ3oJ7mS">applyChanges</code> 是函数声明（存在提升），且只在用户操作时被调用，那时 history.js 早已加载完成。属于<b data-page-node-id="w4fEmmY3Lx63GJHWWxMGx5">隐式耦合</b>而非 bug，但建议补一行注释说明依赖。</p>
+        <p style="margin:6px 0" data-page-node-id="4ufrO5dfftjX7IzyMUSXfE"><b data-page-node-id="2Fuz6VJ608IFDTnBs84seu">② 农历 300 KB 库会不会拖慢首屏？</b><br data-page-node-id="DgBesMu3sYC19Pzo0fwFvk">
+        影响可控。它以 <code data-page-node-id="quDi6fZBNNvN9DhF1kJFDZ">defer</code> 加载且不阻塞 DOM 渲染，并已进 SW 预缓存（第二次访问零网络）。真正的代价是首次加载流量与小程序包体积（详见第六章）。</p>
+        <p style="margin:6px 0" data-page-node-id="jytZCfGwAX1mpDrUGrWJA2"><b data-page-node-id="PBNDIWcVn6CDJnjYpMn8sU">③ 「线上与本地不一致」是不是又发生了？</b><br data-page-node-id="P9D7DViuM5KeBX39o3S3EE">
+        本次复审文件哈希与线上一致，无此问题。历史上该现象的唯一根因是 Service Worker 旧缓存，现已通过 <code data-page-node-id="PHzPIgREGCBNY91zbK6TP2">CACHE_NAME</code> 升版规范（当前 v9）规避。</p>
+    </div>
+
+    <!-- ========== 四、项目评估 ========== -->
+    <h2 data-page-node-id="kqADIHHMfhxA8x4N4oeNcE"><span class="num" data-page-node-id="KWsX9yYksHXtod8lZFrQ9y">四</span>项目评估</h2>
+
+    <h3 data-page-node-id="M0zF9x8IaeDUFS67PYKEJB">4.1 竞争力：差异化在哪</h3>
+    <p data-page-node-id="UO3QhFLoAiwm6ALl838ARz">市面上的排班/打卡工具大致分两类：企业级排班系统（重、要账号、要企业采购）和极简打卡 App（功能薄）。本项目卡在中间地带，优势组合相当独特：</p>
+    <div class="tbl-wrap" data-page-node-id="mneAIxnXMLXMYzmuYwjrh9">
+        <table data-page-node-id="0Z6ZG9AadcTFv10SaavDwF">
+            <thead data-page-node-id="9qzSS511RynCZXmR4FhQIR"><tr data-page-node-id="YMFWj1uuTI8SLIkznHFw6d"><th data-page-node-id="Wfy8DlnEmMTK7HaZ1E1hVs">能力</th><th data-page-node-id="M9xjyggjQgNnptVipW78k5">同类工具普遍情况</th><th data-page-node-id="GuezgkKiRSqnFqXSPSYDrU">本项目</th></tr></thead>
+            <tbody data-page-node-id="8yft2e7XdwrorWyYJIxIUp">
+            <tr data-page-node-id="fmmteFxB2fPFUAEPoG1bwU"><td data-page-node-id="ITPANBEyjJuGaS4dp392oC">开箱即用</td><td data-page-node-id="4RKFLa2ITxI4iJmBEWF3D7">需注册 / 下载 App</td><td data-page-node-id="zPKOWaEJDoFCYkkIbKG6yQ"><span class="tag ok" data-page-node-id="C7mFPSOdSHmH7asmZwHrqI">打开网页即用</span>，零账号零后端</td></tr>
+            <tr data-page-node-id="raAfsM3KtuDwWpzWCOnOFT"><td data-page-node-id="unVQx6QuCJX5UD0AY3i9X3">数据归属</td><td data-page-node-id="qIYu5H1Qrbmoivh4ixNpKw">上传云端服务器</td><td data-page-node-id="aXroxwnGfNgR8QVBsLjJWc"><span class="tag ok" data-page-node-id="ehIx4qFGL4ML9uJIcyIHlu">纯本地</span>，隐私心智强</td></tr>
+            <tr data-page-node-id="F8WeaMNMBjCGmEwJhFftjv"><td data-page-node-id="RBoTD2qjuheAmQnly91kwB">目标规则定制</td><td data-page-node-id="omPPz7O8xJxG37CkDo9UXv">固定或需付费配置</td><td data-page-node-id="oD5W2MmPUwLa5cfj5ZmJOe"><span class="tag ok" data-page-node-id="bS4DV2zovcCKetlx0ONps1">大小月目标 + 5 套行业预设 + 自建预设</span>，可分时段生效</td></tr>
+            <tr data-page-node-id="dMlHvjYkkIEthsTUA4bQUw"><td data-page-node-id="bGvOMrCidWKJ9SUZigmF4s">农历 / 节气</td><td data-page-node-id="OpYFzKTtqkXw5hlfxJWUXn">多数没有，或仅显示农历日</td><td data-page-node-id="W8yxDqXshN1WbRPc0hMGAi"><span class="tag ok" data-page-node-id="ry48Y5TX0f7EEfTTHQzkVE">天文算法 + 节气 + 三伏 + 白名单节日</span></td></tr>
+            <tr data-page-node-id="V18E35cBqfUQYGKWoEITEt"><td data-page-node-id="8NJV5mLcP9si96JRtrylqU">离线可用</td><td data-page-node-id="vxYfdVjPqsEgETRi3impLF">需联网</td><td data-page-node-id="I9dTrMDzT70guCwRWjD0Rt"><span class="tag ok" data-page-node-id="WKLorNmpNKuEBYQnW54aVM">PWA 完全离线</span></td></tr>
+            <tr data-page-node-id="PeXyhY7hBAfXtH5FLe2eMX"><td data-page-node-id="pzzvI4Dw5FRVsiTefKlCPP">待办 + 提醒</td><td data-page-node-id="C9GjCb4OuU1G3mc8Mhtjzg">多为独立功能</td><td data-page-node-id="5MSVwOubPGEY1Daa8jzvK1"><span class="tag ok" data-page-node-id="9OdR6G5GxLJfGeWb8YsJgA">与排班日历同屏，限额提醒防骚扰</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p data-page-node-id="qa0wpJyupFGzVawkjeD5AY"><b data-page-node-id="dCfkWv4BljN2DOHFmxPCPH">结论：</b>差异化清晰，卖点是「<b data-page-node-id="mkgiKxBcqkTBCJdFeeJKgR">隐私优先 + 零门槛 + 规则可定制</b>」。这套定位天然适合蓝领排班、轮班医护、工厂倒班等「目标天数因人而异」的人群。</p>
+
+    <h3 data-page-node-id="eAhecomWDETnAF0YV62ccr">4.2 风险矩阵</h3>
+    <div class="tbl-wrap" data-page-node-id="4fodZEHIVyNdmTegWZdwJi">
+        <table data-page-node-id="j191PBpHlTcvI2h0TA6Oz2">
+            <thead data-page-node-id="aCZvrW56OmWkifVAHr9bMw"><tr data-page-node-id="0R8X97JoMn2nEomY6YXUad"><th data-page-node-id="n8N1y25GZlgFdGJYv7CMsk">风险</th><th data-page-node-id="ZulgVBdZyUqwoMLDcTIgmS">等级</th><th data-page-node-id="N1tcthbdk0ckHalALCm0HN">说明</th><th data-page-node-id="O55pCyuil4BPtuBcLYv7mS">缓解</th></tr></thead>
+            <tbody data-page-node-id="10zWlZGAVXokF3moahGl6I">
+            <tr data-page-node-id="uuRA3OBuSBV5D7xlLd3dgk">
+                <td data-page-node-id="CsNStanuRIigUF2aKN0fdi"><b data-page-node-id="wtEQnQX3fwoAwj1Fhaw5tQ">数据单点</b>：全在 localStorage，清缓存/换设备即丢</td>
+                <td data-page-node-id="dX3uUJFK1OtmFszWsi3jCX"><span class="tag p1" data-page-node-id="L4iYgZTmQZPazrmUhH9PgJ">高</span></td>
+                <td data-page-node-id="oP1vHhveHOBJGTUno8HbUs">面向大众后，用户丢数据＝口碑事故。导出备份需用户主动操作，多数人不会做。</td>
+                <td data-page-node-id="d405A37vjD9l6Tpz86xJ82">引入云同步（可选登录），或至少做「定期提醒备份 + 一键导入」</td>
+            </tr>
+            <tr data-page-node-id="ABm1kVLv4o4Kb1cVlF4JhZ">
+                <td data-page-node-id="fmpavHcQdBFh7RsQzO3vzJ"><b data-page-node-id="aRvyerNbQjchWvU1xAGRl2">定位合规</b>：调用浏览器定位</td>
+                <td data-page-node-id="0XDgkcAY9A6FzNY9fDg5AV"><span class="tag p1" data-page-node-id="5wYhVMNVMDyMDyXqKAYpKI">高</span></td>
+                <td data-page-node-id="LDGio1NtReoacdkfb7OKGR">已做自建说明卡（合规意识到位），但面向大众仍需<b data-page-node-id="N0QzRvmig7Kxyeuti1d2A7">独立隐私政策页</b>承载。</td>
+                <td data-page-node-id="qNST24zR7g74K77B9UYD07">补 <code data-page-node-id="BBQEFnUWJElEVRKUwFXr6w">privacy.html</code> 并在定位说明卡中链接</td>
+            </tr>
+            <tr data-page-node-id="P4eKvt589kGkbHGNsbvpPO">
+                <td data-page-node-id="NTKFJkdtzW6BClqwm7QFKP"><b data-page-node-id="NsqmCLBYo6N0E6sRBTLG14">外部服务依赖</b>：天气/地理编码全靠 open-meteo</td>
+                <td data-page-node-id="AJTfFGRgNUuKTBtX7XEQkj"><span class="tag p1" data-page-node-id="vxeQUM2BHFB5773FxGabdV">中</span></td>
+                <td data-page-node-id="M22yE1pyg4faUAdSKWv9GK">免费服务无 SLA；国内访问其接口偶有波动（历史上 Nominatim 在本机被 reset）。天气挂了不影响主功能，体验有损。</td>
+                <td data-page-node-id="XTJPjs5fISaBdljHEY2NsV">加多源降级（备用天气源）或缓存更长时间</td>
+            </tr>
+            <tr data-page-node-id="AOBXdcN3y8kGjOhqXWixDa">
+                <td data-page-node-id="OjTtu3D3blQ3HmHOVg2Zox"><b data-page-node-id="DISsHwVilvWClIgzr11jvQ">无用户反馈闭环</b></td>
+                <td data-page-node-id="5op5ieOLl54lhpFCspvN01"><span class="tag p2" data-page-node-id="B2wDs2FrZBdyaslnTMauyd">中</span></td>
+                <td data-page-node-id="M9wp2dob2c16eu6EHh9XuL">无反馈入口、无埋点，无法知道用户卡在哪。</td>
+                <td data-page-node-id="abFsOyrOh79DwdqXiGje1I">加「意见反馈」入口 + 轻量埋点</td>
+            </tr>
+            <tr data-page-node-id="btUZjJDDpZIPcbm0z7qBHZ">
+                <td data-page-node-id="kepd2ZkxwxXiLZSLPFrGr9"><b data-page-node-id="dluXaCgIcK3eqJT7xWl11t">移动端体验</b>：桌面布局压缩适配</td>
+                <td data-page-node-id="t12thbe672uHh7Faa6RKOH"><span class="tag p2" data-page-node-id="TzeLm9bB9GRnkViqxRAUeH">中</span></td>
+                <td data-page-node-id="sZ3bpEOhJKBB7VsI2qUXHj">已有 4 档断点（1024/900/640/420），但交互仍偏桌面（拖拽、内联弹窗）。</td>
+                <td data-page-node-id="LIEwNw0OokszkApYt8o2Xn">按移动优先重排，或直接以小程序形态覆盖移动场景</td>
+            </tr>
+            <tr data-page-node-id="9FM9QLqaGA5CcAiaoB2rck">
+                <td data-page-node-id="pzX92uWR7vlkfTwIdgKb6Q"><b data-page-node-id="1RmLGBDGEBBVUvCggVspbC">维护连续性</b>：无测试、无 CI</td>
+                <td data-page-node-id="wMIr6Df66J2elMEcvKdQh1"><span class="tag p2" data-page-node-id="LiDeD9cYKAlYAF5YXJVVQE">低</span></td>
+                <td data-page-node-id="Uy2p1kxDRXof8zxKZ2MA2A">改动靠人工验证，回归靠运气。</td>
+                <td data-page-node-id="AHyOSwlalDEUHFayU78947">固化冒烟测试 + 加简单 CI</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========== 五、上线评估 ========== -->
+    <h2 data-page-node-id="0YyjCQB2hMTRWt4GNyEQ8W"><span class="num" data-page-node-id="BjQLubkmKCuznPAzS87mTP">五</span>上线（开网站）评估</h2>
+
+    <h3 data-page-node-id="PdfXcwy2Jki2JI2oIKqNeV">5.1 技术就绪度：已达标</h3>
+    <div class="callout ok" data-page-node-id="lKVuOkWG9n0JyAym6sIo9W">
+        项目<b data-page-node-id="AjtugZeCHrDm1XNXCHSiKr">当前已经是一个可公开访问的线上站点</b>（GitHub Pages + HTTPS + PWA + Service Worker v9），
+        核心功能闭环完整、离线可用、移动端有基础适配。从「能不能上线」的角度，答案是<b data-page-node-id="j7HTaTfnnxRxy37JVCb3W2">能，现在就能</b>。
+        下面列的是「上线得像个正规产品」还需补的项。
+    </div>
+
+    <h3 data-page-node-id="gXTZ8cMBHtrRrjSWtv3QFK">5.2 上线前 Checklist</h3>
+    <div class="tbl-wrap" data-page-node-id="VVKEQDHNBvwdqB2DzFDpDo">
+        <table data-page-node-id="EhFHLXHIttn58vfGoj83w8">
+            <thead data-page-node-id="WGv0X2ENSGlvkyrZraiK51"><tr data-page-node-id="FiZbbAgq9eqLQZk8mJoDL7"><th style="width:52px" data-page-node-id="aoXDZ2ALJvF92pYV5ZXzys">优先级</th><th data-page-node-id="aRurdWSMFV6eBkWxqCrW5M">事项</th><th data-page-node-id="agUgCeLNi9WHozlIswhIxO">为什么必须 / 说明</th><th data-page-node-id="NGEE2WByeAKuD4YeYn77Sk">工作量</th></tr></thead>
+            <tbody data-page-node-id="CfPTqNiCcMD0E8EyQJTxbF">
+            <tr data-page-node-id="cQdYagYFLm7qIQjQJ2khua"><td data-page-node-id="gtt6BGCkuHBIYLRwJgM7GC"><span class="tag badge" style="background:#fef2f2;color:#dc2626" data-page-node-id="eX92kfRg6AuyFvWC437gwH">必须</span></td><td data-page-node-id="fcSnBf3WCqXVR09eu9Q7ce"><b data-page-node-id="AAF5068hfiXlxAzhaNSGfs">隐私政策页</b>（<code data-page-node-id="FzsaFaVX7NoAzfCm5ePbVG">privacy.html</code>）</td><td data-page-node-id="PUjFMHfV0XLw3HdXW7oLit">你调用了<b data-page-node-id="HRsta6J4LQG7ZKSgIEoBbu">定位</b>、存储用户数据，面向公众必须声明用途、范围、第三方共享（open-meteo）。这也是应用商店/小程序审核的硬性前置。</td><td data-page-node-id="IFrI6EvsuYpenzJ60c0EjS">0.5 天</td></tr>
+            <tr data-page-node-id="qDX7xWknjxKasQsh4VEbII"><td data-page-node-id="9tn392lFJYb5BlO3xccT7C"><span class="tag badge" style="background:#fef2f2;color:#dc2626" data-page-node-id="9vLLJrPzObfXqICMW2B2Ae">必须</span></td><td data-page-node-id="92wBIrw6s5cp4OniqUDCJT"><b data-page-node-id="BExNdleH5nNnCg32qkwQfH">错误监控</b></td><td data-page-node-id="7nNrEUZHrF1pt5lDnNzSOO">线上报错必须能感知，否则无法响应故障。</td><td data-page-node-id="izLYw2pSZ6hccYXCXQeWcE">0.5 天</td></tr>
+            <tr data-page-node-id="CuiIvfE5M88SkHuZl78Q2U"><td data-page-node-id="OYqyKgkHvfe6TkGSAbDVSf"><span class="tag badge" style="background:#fffbeb;color:#d97706" data-page-node-id="p9jgw70rrgCWTt63XfC9gN">强烈建议</span></td><td data-page-node-id="FHyrOhSCzIV3DONUWBYEtI"><b data-page-node-id="nZBiFgZQaq4FeHdhua4iBc">新手引导 / 帮助页</b></td><td data-page-node-id="fLEGDA4uvSgBrZIuRziTBW">功能已相当丰富（方案、模板、待办、提醒），新用户不知道从哪开始。一个 3 步引导或帮助页能显著降流失。</td><td data-page-node-id="qxrMZU5GhuOvb6igR5TTSe">1 天</td></tr>
+            <tr data-page-node-id="EjUuoMyuKzgRZYbOhFFoc3"><td data-page-node-id="qUqpM40B1QQFEQkjUMaRai"><span class="tag badge" style="background:#fffbeb;color:#d97706" data-page-node-id="clIIE2HMA3WQIqBrDAWy5D">强烈建议</span></td><td data-page-node-id="3sE51U240JsfvbM5MxaI6K"><b data-page-node-id="mut84NdmOwp9lUrD123nwi">数据安全提示 + 备份引导</b></td><td data-page-node-id="twXHYQ4hVngFvEIF7FzAzj">「本工具数据存在本机，请定期导出备份」—— 既是对用户负责，也能降低丢失数据后的差评。</td><td data-page-node-id="uT4DERXIqsRELvUKMXq8FW">0.5 天</td></tr>
+            <tr data-page-node-id="YjKJCjbvSLkVvmct3jFrrq"><td data-page-node-id="9kFqjRy2HvQ5mQvRGtsfps"><span class="tag badge" style="background:#fffbeb;color:#d97706" data-page-node-id="UcHJaEVAGcqzSdhdRUUj8k">强烈建议</span></td><td data-page-node-id="G5oVxj68O8DAzlg86fyAKP"><b data-page-node-id="HFHh3GBDz8miMVKHx5GoOV">SEO / 分享元信息</b></td><td data-page-node-id="fUpfH5Jn3CTk1fluDXKiIA">补 <code data-page-node-id="LgXNYnJVuFlUktAwOL7Hec">description</code>、OG 标签、站点标题优化，否则分享出去是一张白卡。</td><td data-page-node-id="GzxQRFAG3CKX36OaUv1UDP">0.5 天</td></tr>
+            <tr data-page-node-id="ey1EcvU0hupGzneIHj0WGX"><td data-page-node-id="DI1zMp93ZqbUFz3ufW3txD"><span class="tag p2" data-page-node-id="19tiUovNRW4och9oHz6ris">建议</span></td><td data-page-node-id="GuHOwlTMjFmS1uoyZ5q55r">反馈入口</td><td data-page-node-id="ri5VJUt4QIkh92Kny67AbS">GitHub Issue 链接或表单，建立反馈闭环。</td><td data-page-node-id="KxI9ALFOwQ6QlsSU5pUN6k">0.5 天</td></tr>
+            <tr data-page-node-id="GcfWSgCSLJZBW9gPWZJzm0"><td data-page-node-id="DVI9plYQhuYvtx6H9QxpfC"><span class="tag p2" data-page-node-id="Lfe8yRoXYEjagEzS7hRdki">建议</span></td><td data-page-node-id="TQKBNC5mnvZyJ5kAwRehp1">可选埋点</td><td data-page-node-id="BW61Q2gWPSVD4mDDdN9lM3">了解真实使用情况（如「打开→添加事项」转化）。注意埋点本身也要写进隐私政策。</td><td data-page-node-id="1RJnBQdzjbIXHpHvMKeVOE">0.5 天</td></tr>
+            <tr data-page-node-id="gaO6lMnTl305fVMuAd8FiB"><td data-page-node-id="0i3oGNTgocfs9c0VtWhemd"><span class="tag p2" data-page-node-id="vye1lreKCemwqS0ye8GkAD">建议</span></td><td data-page-node-id="fVE8DfBNTUbCOIbxHuvKqa">LICENSE / 关于页</td><td data-page-node-id="f4BCJ19U5a6OCYHcGYAq2h">明确授权范围，避免后续争议。</td><td data-page-node-id="IoTfFzAlQIhRNA2ueOuuxe">0.2 天</td></tr>
+            <tr data-page-node-id="CgRvmNDFeQT0HuRL08iy1P"><td data-page-node-id="8csPSTVQFUWuSVvRBlozID"><span class="tag p2" data-page-node-id="SSd4Zn2Rr7Yzn4lKHAFb5d">建议</span></td><td data-page-node-id="DpAmiKP7PIoOrGu9arw5cd">修复 P1 项（主题色、风格统一）</td><td data-page-node-id="qqHdiCHhO10qLMgFy5Oj4w">见第三章，提升整体质感与可维护性。</td><td data-page-node-id="qd4Me0kNyPBKQQ8AvKy2rR">1–2 天</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 data-page-node-id="0KY59s0DEUtrd54VGFNN1Q">5.3 托管方案对比</h3>
+    <div class="tbl-wrap" data-page-node-id="y1q8O6PVp4UWkFEbKZ3POs">
+        <table data-page-node-id="lKL7ZBQTpcVJ7Fln8GUjf5">
+            <thead data-page-node-id="lME97Swo8DuT95nHzJLpgx"><tr data-page-node-id="0KJ1oYKDTqOfTkLYKzRqmp"><th data-page-node-id="51yioksjZBUYLiNPgKeDOA">方案</th><th data-page-node-id="RACaQzHxBcutEDQgz5RyYO">成本</th><th data-page-node-id="km8F7Hi732JPA29F8qmPi5">国内访问速度</th><th data-page-node-id="J76AQ3FNLaWCN44IP9AmqI">备案</th><th data-page-node-id="02e7GsvPpbsNGbL0jMnDOo">适用</th></tr></thead>
+            <tbody data-page-node-id="YUvMpBSpBB25R3TocQFH1A">
+            <tr data-page-node-id="lwtyWRXtPkaVdFRnVjU4e2"><td data-page-node-id="tpbPI1WYo12r5MrboAIR2u"><b data-page-node-id="stgfrNit45Tc5Gy1qDXTF5">GitHub Pages</b>（现状）</td><td data-page-node-id="yMlLbjtWIC9BaJ0LIsqk7O">免费</td><td data-page-node-id="4liAU3Pirw434shJte9vKt">一般（偶有波动）</td><td data-page-node-id="JIIMI9hiKuCcmV9wBGdC7p">不需要</td><td data-page-node-id="pFMVB3dCesiPcixgT09NmL">开发期 / 极客用户 / 验证需求</td></tr>
+            <tr data-page-node-id="PQrbyiCFEiBPqEd4mVcl8J"><td data-page-node-id="pZaS64CV9FmdO3pP0ojQqi">Vercel / Netlify</td><td data-page-node-id="ueVEM3aFDuCZKi6KhPy9L9">免费额度足够</td><td data-page-node-id="Arpy0YaePBUMw0xNLISDTi">一般（优于 GH Pages）</td><td data-page-node-id="yuRokeiMJ4TURAl8Hi2fEF">不需要</td><td data-page-node-id="lMflJG4Y9XVEmXtUoO6w44">想快速加自定义域名与自动部署</td></tr>
+            <tr data-page-node-id="AJXhb3JdHuUB2vNPNCVOMb"><td data-page-node-id="T9zw6IlF92hl89KAhzExov"><b data-page-node-id="E3VEXtd2nDRqBTrSt0q1Au">国内对象存储 + CDN</b>（OSS/COS + 域名）</td><td data-page-node-id="c6kaoHDR1Pq5nH5x0ag7Mh">域名约 50 元/年 + CDN 几元/月</td><td data-page-node-id="54aZGRu5RB3TBIAYyFKcYD"><span class="tag ok" data-page-node-id="nixELDqWXYrZV1l8tpxdzw">快</span></td><td data-page-node-id="DwlRrEOTpXzT6YNa1E01VB"><b data-page-node-id="9Ok5MML1rEfPO5CIiFUrqc">必须 ICP 备案</b>（约 1–2 周）</td><td data-page-node-id="0DnbyDuHHFZF89TEayOnnY">真正面向国内大众用户</td></tr>
+            <tr data-page-node-id="3P3jQ8GCfbDxxvejEFQxnx"><td data-page-node-id="UBeq92pzsx7DUIeoe0gxAK">云开发静态托管（腾讯/阿里）</td><td data-page-node-id="1ChwSRvGVjcmur2cNzeGsG">免费额度 + 按量</td><td data-page-node-id="USGq2kCAMbYpFlapDKADPZ">快</td><td data-page-node-id="BYRYR5MNObdJcENpGszzQP">需备案</td><td data-page-node-id="tjrVN5nCE75DSOBT3BDWZQ">后续要接云数据库做同步</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 data-page-node-id="MEO1vTH2nqGMNzH4DzlHlM">5.4 合规要点（面向国内大众）</h3>
+    <ul data-page-node-id="EkNCjJkZ9Vi8ESZ4zvOzLU">
+        <li data-page-node-id="1tiHkdZZqOa56Q42wknXlS"><b data-page-node-id="AiZ6qvRqeF3cn1KeEQub3i">ICP 备案</b>：若用国内服务器/域名，必须备案；纯境外托管（GitHub Pages）无需，但访问速度与稳定性打折。</li>
+        <li data-page-node-id="ks6XpTblliJ3JQMoYEGPqU"><b data-page-node-id="TT2ayoyvFk1J69VdUOo3BH">隐私政策</b>：必须明示收集「位置信息」、存储于本地、共享给 open-meteo；若加埋点还要声明统计用途。</li>
+        <li data-page-node-id="5CAZgGVP6nrEiwX7lVOVhH"><b data-page-node-id="ndVEY5jYkzkZNFi8T9VDQE">定位权限</b>：已有自建说明卡，合规意识到位，只需把政策页链接挂上去。</li>
+        <li data-page-node-id="jkzfX5F0hImuIXm5KubpPC">本项目不涉及新闻、医疗等特殊行业，无额外资质要求；「排班日历」属工具类，无内容风险。</li>
+    </ul>
+
+    <h3 data-page-node-id="Zao9H2ooeE1Ka3mlKdqnDC">5.5 上线结论</h3>
+    <div class="callout ok" data-page-node-id="KFb1xtWVRPk3M32xoD1IMj">
+        <b data-page-node-id="zy55GayaZfYrWR9FhjI47O">可行，成本极低，工作量约 3–5 天可达「正规产品」标准。</b>
+        建议路径：先补齐「隐私政策 + 错误监控 + 新手引导 + SEO/OG」四项（约 2.5 天），
+        沿用 GitHub Pages 保留免费入口，视用户增长再决定是否上国内托管 + 备案。
+    </div>
+
+    <!-- ========== 六、小程序移植 ========== -->
+    <h2 data-page-node-id="ce7nFIy64WWQhCByXVCa3K"><span class="num" data-page-node-id="wW8CL0nKr6Yh30d8uDHqHx">六</span>微信小程序移植评估</h2>
+
+    <div class="callout warn" data-page-node-id="Bb88PemZAXnx5792YcLcRw">
+        <b data-page-node-id="TCe4EvswbDsTQaGmAFszCe">核心结论（请先接受这个前提）：小程序不是「移植」，而是「复用逻辑、重写界面」。</b>
+        当前项目的界面完全建立在 <code data-page-node-id="C1MXJgO6ytyDFaR98fEZnS">document.createElement</code> + <code data-page-node-id="78GU5xNOBo5h19YAW3U8OQ">innerHTML</code> + 内联样式之上，
+        而小程序是 <b data-page-node-id="CCLH7Y92dZmgfoG1OhfBaH">WXML 模板 + setData 数据驱动</b>，没有 DOM。所有视图代码必须重写。
+        可复用的是「不碰 DOM 的纯逻辑」，约占代码量的 <b data-page-node-id="Qu37n2FKUOtlIeCegPrtFU">40–50%</b>。
+    </div>
+
+    <h3 data-page-node-id="44l2K1OPeJS04tN9YEDz8i">6.1 能力映射表</h3>
+    <div class="tbl-wrap" data-page-node-id="6EiQz3ZzSEfjynH23tKKfw">
+        <table data-page-node-id="PIU0jJDKsQlgKkP3zMQhTp">
+            <thead data-page-node-id="1jNalLXnzAHSUAG6MBP38a"><tr data-page-node-id="9ZvFX85zwAYmah2ey0ZZMn"><th data-page-node-id="2guTn3KjLSFiGIk2HPeuzs">能力</th><th data-page-node-id="fGGyWL9SO067cFVmGyTYoE">Web 现状</th><th data-page-node-id="1uJEQtnd3gDtynu5pVx098">小程序对应</th><th data-page-node-id="kr5x26T958t0hgJBv05luq">改造量</th></tr></thead>
+            <tbody data-page-node-id="PNtxpOWslwkN2lG1G6tS6j">
+            <tr data-page-node-id="nFFepH6a8DwwRuU0YF3BjP"><td data-page-node-id="ORtPM6cgwicGsWQmTBoGrF">视图渲染</td><td data-page-node-id="T7AsUZ3vl3lCZpmBFIlWTd"><code data-page-node-id="eSkVA7cl9VV8GJN20QYMpg">createElement</code> / <code data-page-node-id="TztaBa54WRDgqTY0zYkhvl">innerHTML</code></td><td data-page-node-id="42A7VK9nnJABxzScphzi7N">WXML 模板 + <code data-page-node-id="viwFjOsDkU3GSmVjjB6q17">setData</code></td><td data-page-node-id="sUeuX8kuGvphQu5LnXSQEf"><span class="tag p1" data-page-node-id="BEWQ4233hoXKc2yr3Y07JH">大</span> 日历/侧栏/弹窗/待办/倒计时/天气全部重写</td></tr>
+            <tr data-page-node-id="5OICZ4HCdAeuDd8iUBbKZh"><td data-page-node-id="QYqlnqJSPyBcsWOHykj43B">样式</td><td data-page-node-id="EyIyMFhZWAjmW0yqmQ2LNk">CSS 变量 + <code data-page-node-id="T4E76lvsddHpyuksfnn7Ev">[data-theme]</code> 属性选择器</td><td data-page-node-id="urdDlG1uHXbeqDCCrScuhY">WXSS（支持 CSS 变量，但 attribute 选择器受限）→ 改为根节点 class 切换</td><td data-page-node-id="CQYXECzz1FM7CCOqh47UEd"><span class="tag p1" data-page-node-id="z5gDOuU14FTKP4N7oQAGii">中</span></td></tr>
+            <tr data-page-node-id="pyoGvNPu7LYGkhGPZejhl2"><td data-page-node-id="BnoA4hSgM7w0qmfk1PqtM3">本地存储</td><td data-page-node-id="imRxk0sVszkB58MJvHjUnG"><code data-page-node-id="tVaUBPxF4x9CuvO45IRAGR">localStorage</code>（同步）</td><td data-page-node-id="uzAAEkDT7YD2XFpNJt3zZl"><code data-page-node-id="maoOok2OlaiwjBmkW9OVmk">wx.setStorageSync</code> / <code data-page-node-id="QS6osKSMAc2agyDGeM4qoQ">getStorageSync</code></td><td data-page-node-id="DrS57lbDeHprWsxCC0KwAm"><span class="tag ok" data-page-node-id="YkKVcebfB5KsY2boRYq5Ho">小</span> 封装一层 adapter 即可</td></tr>
+            <tr data-page-node-id="tD5X1iNwftMUGmn5pteI74"><td data-page-node-id="zjZmbI7xlSz8bcJwb5fJCb">网络请求</td><td data-page-node-id="l76A7JItiaSQwTRJgglZPe"><code data-page-node-id="BmGxrGAQUjA2tJkbH6vNaj">fetch</code></td><td data-page-node-id="RF5C3AjzGAEC6IaQ0Yrpjz"><code data-page-node-id="vPbUTWY0bVcLvNxmNH0Lsm">wx.request</code></td><td data-page-node-id="Bf8CcMIqBmHGxEnYJI2mzi"><span class="tag ok" data-page-node-id="nNcyTnHNdGlYPVHmUk1fh2">小</span></td></tr>
+            <tr data-page-node-id="alonHOAQZY12ykm5DE35zN"><td data-page-node-id="9e066QxNkVXrjAG2jOE8RG">定位</td><td data-page-node-id="xdVWWWO9K9WoAF0boK6wyD"><code data-page-node-id="Od1IkvTDJGS2eY5XXKiSWH">navigator.geolocation</code></td><td data-page-node-id="ayeJEVNmfDzwSOf9zNH9kG"><code data-page-node-id="HT4G6xGZEsDjuBowEpHNDN">wx.getLocation</code> + <code data-page-node-id="EDRIED1wp6XmHiG5okOwEK">requiredPrivateInfos</code> + 隐私协议</td><td data-page-node-id="9ssBYAL255u2Qvg4hpDVA8"><span class="tag p1" data-page-node-id="yB3oZzbRSuHNRnCnEQFRXt">中</span> 需后台声明与审核</td></tr>
+            <tr data-page-node-id="OW0yXWGL6jHWGe1PWu2m7P"><td data-page-node-id="zy6MsEM3RoSy35Q3kAdqyG">离线能力</td><td data-page-node-id="OpGjOegm5zFDjuI6lfDUzG">Service Worker 缓存</td><td data-page-node-id="XNB0tEZZ7FES6GIrC4NR0b">小程序包天然离线，无需 SW</td><td data-page-node-id="jl9P03xsDsfPeE7g0yx0qv"><span class="tag ok" data-page-node-id="BdNYfEcpHd4HpZxgjp50Cw">省</span></td></tr>
+            <tr data-page-node-id="0f2IcfuMhFJucQTz1vNagP"><td data-page-node-id="t1XKlGNMHml8yZdz3F0tsp">导出备份</td><td data-page-node-id="rNLQQLVFZZHZlLoxPEufY2">Blob + <code data-page-node-id="CObucqLUwH9M2FCYkViKL1">a.download</code></td><td data-page-node-id="saHykMWcFlmEklCryAeEb1"><code data-page-node-id="vVUbP7ayJyfMSybSaUAt0J">FileSystemManager.writeFile</code> + <code data-page-node-id="o0sLhfjbPYxAchFFBF4Utl">wx.shareFileMessage</code> 或写剪贴板</td><td data-page-node-id="jNwFXxAkG13P3f2QpDq8Gb"><span class="tag p1" data-page-node-id="TerDDNEitTkPmGWFJmvRBm">中</span></td></tr>
+            <tr data-page-node-id="eBpwnqHEY8A0agQH0ZCHQd"><td data-page-node-id="NkgfgIKswZBrKzkAm8gZ9Q">导入备份</td><td data-page-node-id="u630uQ6XcMFeRueoPwNztd"><code data-page-node-id="wqOgEpqUxHU59YDcN95XHj">&lt;input type="file"&gt;</code> + FileReader</td><td data-page-node-id="o2nJzT5Cyx7hjVgWvmidtD"><code data-page-node-id="jlSIulH2BtxWGaNu5f5YGE">wx.chooseMessageFile</code>（从聊天记录选文件）</td><td data-page-node-id="IeU3mXiEBVCcimCkZeTA4Z"><span class="tag p1" data-page-node-id="xx173wzdNADm7a7HfaVQKz">中</span></td></tr>
+            <tr data-page-node-id="mkRubRX0DkF1UluuH3E70C"><td data-page-node-id="nS1B04sbXPtgx6OpiyDSA2">农历库</td><td data-page-node-id="ZjyOIkuFMTYf69JXpc6TOT"><code data-page-node-id="vh4RH5N8WW1WTLoA5o106c">lunar.min.js</code> 300 KB（UMD）</td><td data-page-node-id="1YRuuouYAuIg58yPlIqDAy">可 <code data-page-node-id="vFk9oYCd8oEGqPvVD2gOCs">require</code> 引入，但 <b data-page-node-id="8BKDU0QEv3jMnFPVtAveYG">300 KB 占主包配额</b>（限 2 MB）</td><td data-page-node-id="dyJuGvujrKOicQmO1GgDkP"><span class="tag p1" data-page-node-id="HS97W2jxQ9mX0Au99G3A54">中</span> 建议分包或裁剪算法</td></tr>
+            <tr data-page-node-id="KcF6g9qNoeLHvwkBOo4vF8"><td data-page-node-id="TBtRidORNPKL0qPErY9PgW">主题色</td><td data-page-node-id="CiLvPoZw8AyeFGTRERCFNF">CSS 变量切换</td><td data-page-node-id="o5OLAnEmvnwD4I2KvujCez">同左，改 class 方案</td><td data-page-node-id="K7gU5oIgAd17Tk8HJ1w1JT"><span class="tag ok" data-page-node-id="QYte8b3JERHRryC7Kc9FWo">小</span></td></tr>
+            <tr data-page-node-id="duoY5HjRyCOABPsoAFYPDD"><td data-page-node-id="39ZNCh7tHbLHyN3TyEBkGe">悬浮提醒卡</td><td data-page-node-id="OfXjz31U0MZ6nYhbYDuLiF">自建 DOM 浮层</td><td data-page-node-id="BJkUCnqWuM0GNRRuGr1e1w">自建组件 / <code data-page-node-id="TScH77Df1Q332sA7te6mi9">wx.showModal</code></td><td data-page-node-id="7vfasBI3LZdWEaOhMmLDcV"><span class="tag p1" data-page-node-id="IsfYdjLJsxFnUoD25IzYG6">中</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 data-page-node-id="oQ3GBCkGiLTheqPma9OCW2">6.2 六大难点与对策</h3>
+
+    <div class="card" data-page-node-id="z4gvsYJvAl5mn6w4fVls5X">
+        <h4 data-page-node-id="TudSLpp7I5TTdEqU2Ffuko">① 视图层整体重写（最大的工作量）</h4>
+        <p style="margin:6px 0" data-page-node-id="jIWFfSA1bROjlPWh7CnrVh">Web 端 6 个渲染文件（calendar / countdown / todo / todo-reminder / weather-location / plan）全部依赖 DOM API。小程序需改为「<code data-page-node-id="NZ8Qvw1K5GD5al7lyElEiF">data</code> 驱动 + WXML 循环渲染」。<b data-page-node-id="8U8y81qizdEIX8py4CYFNS">对策</b>：优先重写核心的日历视图与侧栏；弹窗可先用小程序原生组件过渡。</p>
+
+        <h4 data-page-node-id="vfm2v38EvjTDnon9sytw2l">② 农历库 300 KB 包体压力</h4>
+        <p style="margin:6px 0" data-page-node-id="eqQwfXZuUINQWOtEkd5cAq">小程序主包上限 2 MB，整个项目打包后必须严格控制。<b data-page-node-id="rTJpSbNMN2I328GMKKUafS">对策</b>：把农历计算放入<b data-page-node-id="8AJ2SCbUdLYkTkIao8OE2C">分包</b>按需加载；或只抽取「农历日期 + 节气」所需算法（lunar-javascript 可按需裁剪）；也可在构建时预生成 10 年数据表（代价是跨年需更新，与你当初否决查表方案的理由冲突，需权衡）。</p>
+
+        <h4 data-page-node-id="3pu8K0rajLt78W6VnZCo6g">③ request 合法域名 —— 最硬的坎</h4>
+        <p style="margin:6px 0" data-page-node-id="9B8GskWMGtlp57WvH97AuZ">小程序只能请求在后台<b data-page-node-id="XyrmFkJjsY7AMgeFYZKr60">白名单配置过的 HTTPS 域名</b>，且通常要求域名已备案。而当前三个数据源（<code data-page-node-id="f6AaOKoZMmqpCoIx5gm3Y6">api.open-meteo.com</code>、<code data-page-node-id="mcf6uo20FPByYtAbXUdCAL">geocoding-api.open-meteo.com</code>、<code data-page-node-id="Ldhn7Aq9pbjAS7vkd74NR0">api.bigdatacloud.net</code>）均为境外域名，配置后<b data-page-node-id="FF0jpI9mVp0AgvrBKh2XVr">国内访问稳定性无法保证</b>。<b data-page-node-id="HpLZm3knsmqGEo8ZTCVJVv">对策</b>：自建一层轻量代理（这也意味着<b data-page-node-id="KMTEIB3xaa2ZDnomBU03qM">引入后端/云函数</b>，项目将不再是「零后端」）；或改用国内天气服务商（需 key 与配额管理）。</p>
+
+        <h4 data-page-node-id="drZjhfY9Sq4QQzylHHqsPn">④ 定位权限与隐私合规更严</h4>
+        <p style="margin:6px 0" data-page-node-id="kSG15EX0e6LEXidwArZTJd">需在 <code data-page-node-id="71BzZa6PbBXcy6cYCq1yy7">app.json</code> 声明 <code data-page-node-id="4dKQEzYweqyB1v62FvkEm5">requiredPrivateInfos: ["getLocation"]</code>，配置「用户隐私保护指引」，并在首次调用前弹自己的授权说明。<b data-page-node-id="UcRTM8riljtLxqPzvzk72A">对策</b>：把 Web 端已有的「定位说明卡」文案直接复用为小程序的自定义授权弹窗，这套合规思路可平移。</p>
+
+        <h4 data-page-node-id="8c9Tq7Yb0kb5W0iJ14C5pV">⑤ 数据无法从 Web 平移</h4>
+        <p style="margin:6px 0" data-page-node-id="x7rCPopd8kDXHSSk1DjjqK">localStorage 与小程序 Storage 完全隔离，老用户无法自动带数据过去。<b data-page-node-id="xTuKl7M63zA2z2sMhV3gOs">对策</b>：恰好 Web 端的导出 JSON（<code data-page-node-id="6P8kuBjfXtqxEOqDpmsefS">version: 4</code>）是标准格式 —— 让小程序实现「导入同一份 JSON」即可完成迁移，导入导出协议天然复用。</p>
+
+        <h4 data-page-node-id="abVQiEX1HV3iA37gaG0myQ">⑥ 无云同步，跨设备体验落差</h4>
+        <p style="margin:6px 0" data-page-node-id="L8agPYLlIWHUJuSkZRAocF">小程序用户对「换手机数据还在」有天然预期。<b data-page-node-id="l0rcNXX8Aywnm3FsrvGall">对策</b>：配微信云开发（CloudBase）做云端备份，成本低、免运维，还能顺带获得用户体系。</p>
+    </div>
+
+    <h3 data-page-node-id="B7hoq7flHtjJAG55HNIDJG">6.3 三条技术路线对比</h3>
+    <div class="tbl-wrap" data-page-node-id="9YECiP6gPCusz35BabXyPZ">
+        <table data-page-node-id="e4XPuUihGe92yf0cX8b6y7">
+            <thead data-page-node-id="tclaJlLwgjmjDEcNygU5w7"><tr data-page-node-id="Tx9fLlUXEUGfcLA3ApWJjG"><th data-page-node-id="9rT2stqedW7HL9NSq5SghA">路线</th><th data-page-node-id="2ZkGOYWAWC3TOnGhtyoKXX">做法</th><th data-page-node-id="6NGXzYJR47JQS3eMMJop47">优点</th><th data-page-node-id="ewCcVDM4C9pq8HRKvKcF8T">代价</th><th data-page-node-id="L8PybMyWIeiYU7Tb1pkC65">推荐度</th></tr></thead>
+            <tbody data-page-node-id="PtAcM4lRP070jQGplFIu5h">
+            <tr data-page-node-id="LGlvWvdqhub0HJXJ6C0ktK">
+                <td data-page-node-id="1Rzyk8yxv8SxFzppNFdBMK"><b data-page-node-id="gtulzePvv5NJrnFA7oGmYu">A. 原生小程序</b></td>
+                <td data-page-node-id="SqmVrzcHQxQlbdBcGAIWgr">用 WXML/WXSS/JS 完整重写</td>
+                <td data-page-node-id="VHzBWWnN7JvDSMUYdDgGym">体验最好、审核最顺、包体最小</td>
+                <td data-page-node-id="ps55TqdJ5POl8LCXbeT86j">视图层 100% 重写；以后再出其他端要再写一遍</td>
+                <td data-page-node-id="qjMWPDKmyoQSbUAPHvhFgA"><span class="tag ok" data-page-node-id="KwDbxmb7aAVgRcFxIT1pAn">推荐</span></td>
+            </tr>
+            <tr data-page-node-id="eNeNFC6Mz4bRttuIKChfLR">
+                <td data-page-node-id="wnvolV5OBbJhCvc3uuTj2E"><b data-page-node-id="U3fbmI8sUgthFJQgeVtCKp">B. uni-app / Taro</b></td>
+                <td data-page-node-id="i3aA1CMRRSXomAdxGnLtB9">一套代码编译到 Web + 小程序 + App</td>
+                <td data-page-node-id="dAJM7GkCQMACWbWjjXdA3J">多端复用，长期扩展性好</td>
+                <td data-page-node-id="YutJe7wC4cqgolxkb3pyur">现有 Web 代码需按框架规范重构（≈重写）；引入构建链，偏离当前「零构建」哲学</td>
+                <td data-page-node-id="5Y4xd9qjF0pQfGdDpHd2iw"><span class="tag brand" data-page-node-id="TqOqYNxrkZyfUggSGHaZg4">多端则选</span></td>
+            </tr>
+            <tr data-page-node-id="87m3eNUn62wvH7VCPMGDDh">
+                <td data-page-node-id="FA3dDrLTWtSVTIStaw3YJo"><b data-page-node-id="2Q21qF0GPwGWBIKCdAO9Yw">C. Web 优先</b></td>
+                <td data-page-node-id="Xk7xtzLZ32yGfmdeDLIQ8V">先做 Web 上线验证需求，小程序后置</td>
+                <td data-page-node-id="F0QtjAdnd4pej2bErkNAqF">成本最低、见效最快；用真实用户数据决定是否值得投入</td>
+                <td data-page-node-id="5aMDLGGFEwv9Wc46pqLHKG">暂时放弃小程序流量入口</td>
+                <td data-page-node-id="l3CcR2AAGv20AuWo6xJsIp"><span class="tag ok" data-page-node-id="F7PUMEEqE35Z4oS6NCFQBW">强烈推荐</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout info" data-page-node-id="l0AA3lfwwMB5iC8djQPRA2">
+        <b data-page-node-id="N7g4RAvzKL98X08rZF2PW5">无论走哪条路，都建议先做一件事：</b>把与视图无关的「核心逻辑层」抽成一组无 DOM 依赖的纯 JS 模块
+        （日期工具、农历封装、进度计算、方案求值、数据清洗、排序规则）。
+        这样 Web 与小程序可共享同一份逻辑，也是将来无论走 A 还是 B 都受益的前置投资。
+    </div>
+
+    <h3 data-page-node-id="fjLjahaGiyheMZJjVKfDYO">6.4 工作量估算（1 人全职）</h3>
+    <div class="tbl-wrap" data-page-node-id="DQC0VgDENcc2usUrSAHXM0">
+        <table data-page-node-id="x5B09jiF5zOgwWE9IbH2QT">
+            <thead data-page-node-id="Lo5alovW4OyRyzHn8oRQnD"><tr data-page-node-id="ceVa8A2FYrP1XwJtpR1AvR"><th data-page-node-id="h9jScYRp0cKd9oHDosug1M">阶段</th><th data-page-node-id="u6gpNS12kW3DAl66oODp5R">内容</th><th data-page-node-id="BRtvvvgkrwXndcgE0hUGdk">预估</th></tr></thead>
+            <tbody data-page-node-id="JvYjrkrsvM1Pc5B4WzxSHv">
+            <tr data-page-node-id="7TKDpziO187HPuCf2P9ij8"><td data-page-node-id="9R6WNGFimnxFTMm5DAzE5L">逻辑层抽取与适配</td><td data-page-node-id="BTf68GAA5vGjNHsjle18Dh">utils / 农历封装 / 进度 / 方案 / 数据清洗 → 纯逻辑模块 + Storage/Request adapter</td><td data-page-node-id="n5iTPHspxDjcLiJZGbngh8">3–5 天</td></tr>
+            <tr data-page-node-id="28Axc4lgrSch0UZ5KWgbCs"><td data-page-node-id="w1il9GuRoDQ5JBVF5mFHHF">视图层重写</td><td data-page-node-id="aszyyXFHncW0HDpj64vTgC">日历网格、侧栏统计、进度条、方案弹窗、待办、倒计时、天气（WXML + setData）</td><td data-page-node-id="ERuZYdXPjxkns9jtICACE1">10–15 天</td></tr>
+            <tr data-page-node-id="PJiHEotMB1GvhLNY8SmWzG"><td data-page-node-id="sau3IvHzRCwoM00grh306p">平台适配</td><td data-page-node-id="Nnt2fAoh3sTtkhbJYoD5Sy">存储、网络代理、定位授权、导入导出、主题 class 方案</td><td data-page-node-id="MZgHl2XvMsuONYmmsn1VFF">5–8 天</td></tr>
+            <tr data-page-node-id="ewFfMWiySU4rEPIKMQyw0v"><td data-page-node-id="A17sh6lArestnWAwP3fsVc">联调 / 测试 / 提审</td><td data-page-node-id="PiJUKhbedNZTXb5MsSBvw7">真机测试、体验版、隐私指引、审核往返</td><td data-page-node-id="wrIcnHl1uCMfJo1djx5e89">4–6 天</td></tr>
+            <tr data-page-node-id="JBX8u3UzFTIJcK1D5t7NWs"><td colspan="2" style="text-align:right" data-page-node-id="HEZ5jQa7sjzxcR8Oz41Dwf"><b data-page-node-id="yW0tJXecKFoAPMemB49FSU">合计（原生小程序路线）</b></td><td data-page-node-id="hSTTEgt2zy9XuNvO0t5H3s"><b data-page-node-id="Dr6KzuDrNDr8cONew2k5lZ">约 4–6 周</b></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p style="font-size:.88rem;color:var(--ink-3)" data-page-node-id="b4TArwnpZBX5Xmxqgr1KN6">注：走 uni-app / Taro 路线，逻辑复用率更高但需先补框架基础与构建链，总时长与 A 相近；Web 优先路线则把上述投入推迟到需求验证之后。</p>
+
+    <h3 data-page-node-id="WVFAWfUo4uKXCEnlt2cFgD">6.5 审核与合规提示</h3>
+    <ul data-page-node-id="mqoIoWriXf8zHdei3Eq9QZ">
+        <li data-page-node-id="FODVdPzjPZbTiZA8Lghkw1"><b data-page-node-id="GBXbqYXnc1a4PulWMEaeau">类目</b>：选「工具 - 效率」通常最顺；排班日历属工具类，无内容风险。</li>
+        <li data-page-node-id="YoHAyVQTk17q6k0XhfZuGd"><b data-page-node-id="5zBJUZ0ZGt7irVGCqYmgBB">定位类目</b>：调用 <code data-page-node-id="FbqEX8otayR8sqA6OxGxvE">getLocation</code> 需在「小程序管理后台 → 开发设置 → 接口设置」申请，并填写用途说明（「用于获取所在城市天气」）—— 与 Web 端说明卡口径一致即可。</li>
+        <li data-page-node-id="tSwnbrIV9qqgryz37d5PIB"><b data-page-node-id="D5Dywyp2emACkxN4NATDhn">隐私协议</b>：必须在后台配置《用户隐私保护指引》，勾选「位置信息」「设备信息」，否则新版本无法提交。</li>
+        <li data-page-node-id="PdMlaL1s1KO4QjfCklfuHH"><b data-page-node-id="04PHjZgRJ1fbHA1KoaDYeE">无支付、无 UGC、无社交</b>：大幅降低审核复杂度，通常 1–3 个工作日可过。</li>
+    </ul>
+
+    <!-- ========== 七、路线图 ========== -->
+    <h2 data-page-node-id="dI6CtfhiiALdM1xDRnPJNY"><span class="num" data-page-node-id="SH0RcBlIix8Y9qci6z2pJe">七</span>行动路线图（建议）</h2>
+
+    <div class="timeline" data-page-node-id="j8LldBVdLrn5E8KVR7Aqx0">
+        <div class="tl-item" data-page-node-id="nEmTDpvk2usMC7YsG6ZCIS">
+            <div class="tl-title" data-page-node-id="u98mnzNTPCPJV58ECthzl5">阶段一 · 打磨与合规（约 3–5 天）→ 公开发布 Web</div>
+            <div class="tl-sub" data-page-node-id="gX4gibjzDTVYjzbsPS2du7">
+                ① 新增 <code data-page-node-id="rpPtobH4rIq2ONRIAO7HDt">privacy.html</code> 隐私政策页并在定位说明卡中链接；
+                ② 接入前端错误监控（<code data-page-node-id="gngwlLknQZnq6FvuSDt0zE">window.onerror</code> + 上报）；
+                ③ 补 SEO/OG 元信息与 <code data-page-node-id="0w5AKF5Cyz3LzgWNqXGhQq">LICENSE</code>；
+                ④ 加新手引导 / 帮助页；
+                ⑤ 顺手修 P1：内联色值改主题变量、固化 jsdom 冒烟测试。
+            </div>
+        </div>
+        <div class="tl-item" data-page-node-id="v9XeC1lNrbE7ZCQjOwmNo3">
+            <div class="tl-title" data-page-node-id="a1CLJX2PvS16zAdDNCNTP8">阶段二 · 逻辑层解耦（约 3–5 天）</div>
+            <div class="tl-sub" data-page-node-id="mlarf7kRmkiAob2HEEnJVP">
+                把纯逻辑抽成无 DOM 依赖的模块（日期 / 农历 / 进度 / 方案 / 清洗 / 排序），
+                为「多端复用」铺路。此阶段不影响 Web 功能，属纯收益的结构改造。
+            </div>
+        </div>
+        <div class="tl-item" data-page-node-id="fhd3GiBgkTbuh3Bz2IOTvR">
+            <div class="tl-title" data-page-node-id="ieeHDgCDB2YTuuuDB05BTq">阶段三 · 数据韧性（约 3–5 天）</div>
+            <div class="tl-sub" data-page-node-id="t5W4BgwwrgDdO4SAziHILa">
+                引入可选云同步（Web 端可用轻量 BaaS，如 CloudBase / Supabase 免费额度），
+                解决「清缓存即丢数据」的头号风险；保持「不登录也能用」的隐私优先定位。
+            </div>
+        </div>
+        <div class="tl-item" data-page-node-id="TRWtdXCQOhfeOdRhWC8Thc">
+            <div class="tl-title" data-page-node-id="CGlj4SQDqH4m9YW90xAgJv">阶段四 · 小程序（约 4–6 周，视需求验证结果决定）</div>
+            <div class="tl-sub" data-page-node-id="AC0aWJXFH7NV5tNY9Vwn6y">
+                以阶段二抽好的逻辑层为基座，原生小程序重写视图层；
+                自建请求代理解决境外域名问题；用云开发做同步与用户体系。
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 八、附录 ========== -->
+    <h2 data-page-node-id="fmBJGVDqrn83pfCdZhXUFD"><span class="num" data-page-node-id="MRur4G7PtIwTUbRdHwPZM7">八</span>附录：快速对照</h2>
+
+    <h3 data-page-node-id="iP3CdAMYoKGt7ofchHiiSy">8.1 数据兼容性（好消息）</h3>
+    <div class="callout ok" data-page-node-id="QKblw6VN4aFnHz8JEesYL1">
+        现有导出格式 <code data-page-node-id="f2W76NfzgDYp00cGaa2oRF">{ version: 4, statuses, countdowns, todos, plan, theme }</code> 是<b data-page-node-id="Ml8Usxjmzk5lO0uOSiGcQ5">平台无关的标准 JSON</b>。
+        这意味着：<b data-page-node-id="fJNd3CnH0Nc3T4y6ToXejb">Web ↔ 小程序的数据迁移可以零成本打通</b> —— 小程序只需实现「导入/导出同一份 JSON」，
+        用户即可把 Web 上积累的排班数据无缝带进小程序。这是当前架构里最有价值的一处前瞻性设计。
+    </div>
+
+    <h3 data-page-node-id="sngU0TCVX0CgOsudurKYgG">8.2 localStorage 键清单（迁移时需逐一对照）</h3>
+    <div class="tbl-wrap" data-page-node-id="H2u8Wlml56ojrFu4IMAmtk">
+        <table data-page-node-id="GphEYXiu5CHd9jZw8HLLGb">
+            <thead data-page-node-id="A7yMSNXxzgX2oXKaAuuos7"><tr data-page-node-id="BClxtydYfCTpRiAtbmcSKe"><th data-page-node-id="5eky2lTBiRWGgN5N6ILnS0">键名</th><th data-page-node-id="kZ34N2DrIc6boEa69ehkFj">用途</th><th data-page-node-id="nbGGErz1myEDApVC3PTS9x">是否需要跨端迁移</th></tr></thead>
+            <tbody data-page-node-id="A8kprmIwdpGs5xrNReaHvy">
+            <tr data-page-node-id="EUZGk4bEWOeinvaTvGbijx"><td data-page-node-id="MAQgKJP88s4RVm8bdGBHNZ"><code data-page-node-id="Mo7m9eAAOO5UTFQR54Bokx">workStatusMap</code></td><td data-page-node-id="s29hWrw24xPkDNIvgikVXG">排班标记</td><td data-page-node-id="EMNHDtoDI9H4PtTe0lGvpm"><span class="tag ok" data-page-node-id="Bc7pfw5h7ra5GDmeRlgVYB">是（核心）</span></td></tr>
+            <tr data-page-node-id="YFUFGZHV4qBlZzjj3dCQ8y"><td data-page-node-id="MOBRrCmOCiFZlPgHqrjBGp"><code data-page-node-id="DzBKAeEJmGAKnIUin3z5xe">todoList</code></td><td data-page-node-id="0AXZPIn5Gs3kJfQupVmtdK">待办事项</td><td data-page-node-id="b1X6kSyKeZeVQzf6V9NaSG"><span class="tag ok" data-page-node-id="vofTltZ1TOfu5Bs18FFNHL">是</span></td></tr>
+            <tr data-page-node-id="NbzoNqpkUV9E6WJlwbhMhe"><td data-page-node-id="VlTjbbiljDoxxl45ZaSyJ0"><code data-page-node-id="I2sXZGcpihcslChUlcLRXn">countdownList</code></td><td data-page-node-id="si7v3A23inRfiaGTJz3PIi">倒计时</td><td data-page-node-id="XWekBmrblhSOi1VgxuhmvS"><span class="tag ok" data-page-node-id="zFWfg7lk9vYI79g7N9ADNM">是</span></td></tr>
+            <tr data-page-node-id="2jrkgk9Dbch8yluuQ5QaFm"><td data-page-node-id="JuuRsXPi0G0hbRVG1AGXFo"><code data-page-node-id="e0z4YaY3dl64mhcjWMTrRE">schedulePlan</code></td><td data-page-node-id="J0G9k6JlV76POvoc5eztRB">排班方案与预设</td><td data-page-node-id="cZQAGiSWDkQ2N18onXET6o"><span class="tag ok" data-page-node-id="xGJwuqErDJ6PaVIeGlIJUt">是</span></td></tr>
+            <tr data-page-node-id="9MfSuJq18t2JppJWBW3fl4"><td data-page-node-id="UmKHH6e60tnldyKK2wyRCx"><code data-page-node-id="usQByhXeHZtpucCsk0FOpJ">calendar_theme</code></td><td data-page-node-id="GsVZ2mJXxra354ZVgLcptb">主题</td><td data-page-node-id="IoCOmSvjUI3wZqgt8lLAyZ"><span class="tag p2" data-page-node-id="LomxZM4B8hhJ9l9uT4QWWx">可选</span></td></tr>
+            <tr data-page-node-id="KgDDf0GY2zSAyGpPPzjR0I"><td data-page-node-id="rN7AwdtgHSPONfvOGq4aOn"><code data-page-node-id="YtfbP24U2iVULusGEREJ1C">weatherLocation</code></td><td data-page-node-id="CdwwgqRTPLTADXqy3SIe8S">天气地点</td><td data-page-node-id="qdwkFo0WhcGKGEYhfisWLb"><span class="tag p2" data-page-node-id="A6ov2NRuLz4MDs0KypGhND">否（端内各自定位）</span></td></tr>
+            <tr data-page-node-id="N4ZFiFqHA2ZUMQcGpg7jyf"><td data-page-node-id="VGvkROkr9G5m7UlnjUXJLF"><code data-page-node-id="WJGS48BCOj4wcrXSAmH7e6">weatherCache</code></td><td data-page-node-id="66rB61dAyF7IP74QRJdY3B">天气缓存</td><td data-page-node-id="i4GvPQxfvLDrbFGjlbwefR"><span class="tag p2" data-page-node-id="LrFeL353cvaEHtQH4YyaU4">否</span></td></tr>
+            <tr data-page-node-id="E4LWyHjgysXEVCFUYiP3lj"><td data-page-node-id="Tc14LI5bwXt28CvBD2p9b3"><code data-page-node-id="BtW53AUfPYSdme2CAf0qh1">todoReminderLog</code></td><td data-page-node-id="iy5wjaM9ECchgARYPaZs5y">提醒计数</td><td data-page-node-id="T2O2N2QZUzDfpiFVxGucsh"><span class="tag p2" data-page-node-id="0qsZBVV9zI9XhRAtu4XANz">否</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 data-page-node-id="97MAghGCIfJcLPUJyRLZE7">8.3 一句话总结</h3>
+    <div class="callout info" style="font-size:.95rem" data-page-node-id="IAYPnxAAwhI6JQKEyvhdrn">
+        <b data-page-node-id="98ZSE7AU9uyrYG9pZ1tTCV">代码本身没有拦路虎，产品化还差临门几脚，小程序是一场需要重新起跳的跳远。</b><br data-page-node-id="kpZNF5W1gNvOFz6FpwYsoz">
+        建议：<b data-page-node-id="JAcV5APCT6XNkxma15Yp1W">先用 3–5 天把 Web 打磨到「可公开发布」，3 天做逻辑层解耦，3–5 天补数据韧性</b>；
+        小程序的 4–6 周投入，留给「Web 端已被真实用户验证」之后再决定 —— 届时你现在已具备的一整套纯净逻辑与标准数据格式，会让那次重写省下大量返工。
+    </div>
+
+    <div class="foot" data-page-node-id="2yifL8QHGHX41zazdT6S2B">
+        本报告基于 2026-10-06 代码快照（16 个 JS / 6 个 CSS / 8,507 行）复审生成 · 所有结论均可回溯至具体文件
+    </div>
+
+</div>
+</body>
+
+</html>

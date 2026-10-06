@@ -134,8 +134,10 @@ async function runAll(port) {
     appFooter.querySelectorAll('.app-footer-line').length === 2,
     'got ' + appFooter.querySelectorAll('.app-footer-line').length);
   ok('页脚居中', /\.app-footer\s*\{[^}]*text-align:\s*center/.test(cssCalendar));
-  ok('页脚紧贴操作区（不再用 margin-top:auto 贴底）',
-    !/\.app-footer\s*\{[^}]*margin-top:\s*auto/.test(cssCalendar));
+  ok('页脚贴底（margin-top:auto 填掉下方留白）',
+    /\.app-footer\s*\{[^}]*margin-top:\s*auto/.test(cssCalendar));
+  ok('日历盒子是纵向 flex（页脚才能贴到底部）',
+    /\.calendar-wrapper\s*\{[^}]*flex-direction:\s*column/.test(cssCalendar));
   ok('页脚链接带下划线（与文档页风格一致）',
     /\.app-footer a\s*\{[^}]*text-decoration:\s*underline/.test(cssCalendar));
   ok('操作栏已回到 3 项（关于移入页脚信息）',
