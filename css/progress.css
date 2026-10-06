@@ -173,3 +173,243 @@
         padding: 10px 12px;
     }
 }
+
+/* ============================================================
+   排班方案（可定制的目标规则，见 js/plan.js）
+   ============================================================ */
+
+/* ---------- 左栏入口条 ---------- */
+.plan-entry-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    background: rgba(248, 250, 252, 0.85);
+    border: 1px dashed #dbe3ee;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.plan-entry-bar:hover {
+    background: var(--primary-bg, #eff6ff);
+    border-color: var(--primary, #3b82f6);
+}
+.plan-entry-icon {
+    font-size: 0.8rem;
+}
+.plan-entry-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #475569;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.plan-entry-go {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--primary, #3b82f6);
+}
+
+/* ---------- 方案弹窗 ---------- */
+.plan-box {
+    max-width: 400px;
+    width: 92%;
+    max-height: 86vh;
+    display: flex;
+    flex-direction: column;
+}
+.plan-now {
+    font-size: 0.66rem;
+    color: #475569;
+    line-height: 1.5;
+    background: #f4f8ff;
+    border: 1px solid #e3edfb;
+    border-radius: 10px;
+    padding: 7px 10px;
+    margin-bottom: 12px;
+}
+.plan-field {
+    margin-bottom: 12px;
+}
+.plan-field-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+.plan-scope-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+.plan-scope-btn {
+    flex: 1;
+    padding: 6px 0;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 9px;
+    background: transparent;
+    font-size: 0.68rem;
+    color: #64748b;
+    font-family: inherit;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.plan-scope-btn:hover {
+    background: #f1f4f9;
+}
+.plan-scope-btn.active {
+    border-color: var(--primary, #3b82f6);
+    background: linear-gradient(135deg, var(--primary, #3b82f6), var(--primary-dark, #2563eb));
+    color: #fff;
+    font-weight: 600;
+}
+.plan-select {
+    width: 100%;
+}
+.plan-sub {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    margin: 10px 0 6px;
+}
+.plan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 168px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+.plan-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 1.5px solid #eef2f7;
+    border-radius: 10px;
+    background: #fbfdff;
+}
+.plan-item.active {
+    border-color: var(--primary, #3b82f6);
+    background: var(--primary-bg, #eff6ff);
+}
+.plan-item-info {
+    flex: 1;
+    min-width: 0;
+}
+.plan-item-name {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.plan-item-desc {
+    font-size: 0.58rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+.plan-use-btn {
+    flex: none;
+    padding: 5px 11px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary, #3b82f6), var(--primary-dark, #2563eb));
+    font-family: inherit;
+    cursor: pointer;
+}
+.plan-use-btn:hover {
+    opacity: 0.9;
+}
+.plan-del-btn {
+    flex: none;
+    padding: 2px 4px;
+    border: none;
+    background: transparent;
+    color: #cbd5e1;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+.plan-del-btn:hover {
+    color: #ef4444;
+}
+.plan-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+/* 弹窗基类的 .modal-input 自带 14px 下边距，这里用 gap 统一控制间距 */
+.plan-form .modal-input,
+.plan-field .modal-input {
+    margin-bottom: 0;
+}
+.plan-num-row {
+    display: flex;
+    gap: 8px;
+}
+.plan-num {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.plan-num-label {
+    font-size: 0.56rem;
+    color: #94a3b8;
+    text-align: center;
+}
+.plan-num-input {
+    text-align: center;
+    padding: 6px 0;
+}
+.plan-err {
+    min-height: 14px;
+    margin: 6px 0;
+    font-size: 0.62rem;
+    color: #ef4444;
+    text-align: center;
+}
+.plan-actions {
+    margin-bottom: 0;
+}
+.plan-reset-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 6px 0;
+    border: 1.5px dashed #e2e8f0;
+    border-radius: 9px;
+    background: transparent;
+    font-size: 0.64rem;
+    color: #64748b;
+    font-family: inherit;
+    cursor: pointer;
+}
+.plan-reset-btn:hover {
+    border-color: var(--primary, #3b82f6);
+    background: var(--primary-bg, #eff6ff);
+    color: var(--primary, #3b82f6);
+}
+.plan-close-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 7px 0;
+    border: none;
+    border-radius: 9px;
+    background: #f1f5f9;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #475569;
+    font-family: inherit;
+    cursor: pointer;
+}
+.plan-close-btn:hover {
+    background: #e2e8f0;
+}

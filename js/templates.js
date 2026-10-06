@@ -171,14 +171,24 @@ function showTemplateModal() {
     var list = document.createElement('div');
     list.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-bottom:16px;';
 
-    SCHEDULE_TEMPLATES.forEach(function (tpl) {
+    // 当前「排班方案」配套的模板置顶并标注，方便一键套用
+    var recId = (typeof getPlanTemplateId === 'function') ? getPlanTemplateId() : '';
+    var ordered = SCHEDULE_TEMPLATES.slice().sort(function (a, b) {
+        var ra = a.id === recId ? 0 : 1;
+        var rb = b.id === recId ? 0 : 1;
+        return ra - rb;
+    });
+
+    ordered.forEach(function (tpl) {
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'template-item';
+        btn.className = 'template-item' + (tpl.id === recId ? ' recommended' : '');
         btn.innerHTML =
             '<span class="template-icon">' + tpl.icon + '</span>' +
             '<span class="template-text">' +
-            '<span class="template-name">' + tpl.name + '</span>' +
+            '<span class="template-name">' + tpl.name +
+            (tpl.id === recId ? '<span class="template-badge">方案推荐</span>' : '') +
+            '</span>' +
             '<span class="template-desc">' + tpl.desc + '</span>' +
             '</span>';
         btn.onclick = function () {

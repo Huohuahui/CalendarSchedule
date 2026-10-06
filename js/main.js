@@ -51,6 +51,8 @@ function fullUpdate() {
     renderCalendar(currentYear, currentMonth);
     updateProgressBars(currentYear, currentMonth);
     updateUndoUI();     // 任何变更后同步撤销按钮状态
+    // 方案名可能随月份/规则变化（如「仅本月」覆盖），一并刷新入口文字
+    if (typeof refreshPlanUI === 'function') refreshPlanUI();
 }
 
 function updateProgressBars(year, month) {
@@ -292,18 +294,26 @@ function exportData() {
         if (Array.isArray(td)) todos = td;
     } catch (e) { /* 忽略 */ }
 
-    if (statusCount === 0 && countdowns.length === 0 && todos.length === 0) {
+    // 收集排班方案（目标规则 / 预设）
+    var planData = null;
+    try {
+        var pl = localStorage.getItem('schedulePlan');
+        if (pl) planData = JSON.parse(pl);
+    } catch (e) { /* 忽略 */ }
+
+    if (statusCount === 0 && countdowns.length === 0 && todos.length === 0 && !planData) {
         showToast('⚠️ 没有数据可导出');
         return;
     }
 
     var payload = {
-        version: 3,
+        version: 4,
         app: 'schedule-calendar',
         exportedAt: new Date().toISOString(),
         statuses: statusMap,
         countdowns: countdowns,
         todos: todos,
+        plan: planData,
         theme: localStorage.getItem('calendar_theme') || 'default'
     };
 
@@ -320,7 +330,8 @@ function exportData() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    showToast('✅ 已导出 ' + statusCount + ' 个标记、' + countdowns.length + ' 个倒计时、' + todos.length + ' 个待办');
+    showToast('✅ 已导出 ' + statusCount + ' 个标记、' + countdowns.length + ' 个倒计时、' + todos.length + ' 个待办'
+        + (planData ? '、排班方案' : ''));
 }
 
 function importData() {
@@ -348,14 +359,16 @@ function importData() {
             var statuses = null;
             var countdowns = null;
             var todos = null;
+            var planData = null;
             var theme = null;
 
             if (data && typeof data === 'object' && !Array.isArray(data)) {
-                if ((data.version === 2 || data.version === 3) && data.statuses) {
+                if ((data.version === 2 || data.version === 3 || data.version === 4) && data.statuses) {
                     // 新版完整备份
                     statuses = sanitizeStatusMap(data.statuses);
                     if (Array.isArray(data.countdowns)) countdowns = data.countdowns;
                     if (Array.isArray(data.todos)) todos = data.todos.filter(isValidTodo);
+                    if (data.plan && typeof data.plan === 'object') planData = sanitizePlanData(data.plan);
                     if (typeof data.theme === 'string') theme = data.theme;
                 } else {
                     // 兼容旧版纯 map 格式
@@ -374,6 +387,7 @@ function importData() {
             var confirmMessage = '确定要导入数据吗？\n\n将导入 ' + Object.keys(statuses).length + ' 个标记'
                 + (countdowns ? '、' + countdowns.length + ' 个倒计时' : '')
                 + (todos ? '、' + todos.length + ' 个待办' : '')
+                + (planData ? '、1 套排班方案' : '')
                 + '\n\n⚠️ 将覆盖当前全部数据！';
             if (!confirm(confirmMessage)) {
                 showToast('❌ 已取消导入');
@@ -387,6 +401,9 @@ function importData() {
             }
             if (todos !== null) {
                 localStorage.setItem('todoList', JSON.stringify(todos));
+            }
+            if (planData !== null) {
+                localStorage.setItem('schedulePlan', JSON.stringify(planData));
             }
             if (theme) {
                 localStorage.setItem('calendar_theme', theme);
@@ -408,11 +425,15 @@ function importData() {
             if (theme && typeof loadTheme === 'function') {
                 loadTheme();
             }
+            if (planData !== null && typeof refreshPlanUI === 'function') {
+                refreshPlanUI();
+            }
             fullUpdate();
 
             showToast('✅ 成功导入 ' + Object.keys(statuses).length + ' 个标记'
                 + (countdowns ? '、' + countdowns.length + ' 个倒计时' : '')
-                + (todos ? '、' + todos.length + ' 个待办' : ''));
+                + (todos ? '、' + todos.length + ' 个待办' : '')
+                + (planData ? '、排班方案' : ''));
         };
         reader.readAsText(file);
     };
@@ -940,4 +961,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 初始化待办「临近提醒」（刷新 / 切回标签页 / 页面停留定时检查）
     if (typeof initTodoReminder === 'function') initTodoReminder();
+
+    // 初始化排班方案（目标天数定制入口）
+    if (typeof initPlan === 'function') initPlan();
 });

@@ -78,6 +78,13 @@
 
             <hr class="divider">
 
+            <!-- ===== 排班方案入口（目标天数可定制） ===== -->
+            <div class="plan-entry-bar" id="planEntry" title="定制排班方案：大月/小月目标与额外上限都能改">
+                <span class="plan-entry-icon">🧭</span>
+                <span class="plan-entry-name" id="planEntryHint">标准班</span>
+                <span class="plan-entry-go">定制 ›</span>
+            </div>
+
             <!-- ===== 倒计时模块 ===== -->
             <div class="countdown-module">
                 <div class="countdown-header">
@@ -158,7 +165,7 @@
                     <span class="icon">📋</span>
                     <span class="text-wrap">
                         <span class="name">模板</span>
-                        <span class="hint">一键套用</span>
+                        <span class="hint" id="quickTemplateHint">一键套用</span>
                     </span>
                 </div>
 
@@ -216,6 +223,7 @@
     <script src="js/themes.js" defer></script>
     <script src="js/countdown.js" defer></script>
     <script src="js/templates.js" defer></script>
+    <script src="js/plan.js" defer></script>
     <script src="js/todo.js" defer></script>
     <script src="js/todo-reminder.js" defer></script>
     <script src="js/weather-location.js" defer></script>

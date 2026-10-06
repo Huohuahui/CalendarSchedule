@@ -554,6 +554,22 @@
     font-size: 0.6rem;
     color: #94a3b8;
 }
+/* 当前排班方案配套的模板：置顶高亮 */
+.template-item.recommended {
+    border-color: var(--primary, #3b82f6);
+    background: var(--primary-bg, #eff6ff);
+}
+.template-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 20px;
+    font-size: 0.52rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--primary, #3b82f6);
+    vertical-align: middle;
+}
 
 /* ---------- 倒计时模块 ---------- */
 .countdown-module {

@@ -56,7 +56,7 @@ function calcBaseProgress(year, month) {
 function calcExtraProgress(year, month) {
     const totalOvertime = getTotalOvertime(year, month);
     const baseTarget = getBaseTarget(year, month);
-    const target = EXTRA_TARGET;
+    const target = getExtraTarget(year, month);
     const extraRaw = getExtraOvertime(totalOvertime, baseTarget);
     const done = Math.min(extraRaw, target);
     const percent = calcPercent(done, target);

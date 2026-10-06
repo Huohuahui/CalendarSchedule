@@ -66,27 +66,49 @@ function getDaysInMonth(year, month) {
 
 /**
  * 计算基础加班目标
- * 
+ *
  * 知识点：
  * - 三元运算符：condition ? valueIfTrue : valueIfFalse
- * - 小月（≤30天）目标14天，大月（31天）目标15天
- * 
+ * - 目标天数现在由「排班方案」决定（见 js/plan.js），用户可自行定制
+ * - 方案里的规则：bigBase 对应大月（31 天），smallBase 对应小月（≤30 天）
+ * - 读不到方案（plan.js 未加载 / 无数据）时退回默认 15 / 14
+ *
  * @param {number} year  - 年份
  * @param {number} month - 月份（1-12）
  * @returns {number} 基础加班目标天数
  */
 function getBaseTarget(year, month) {
     const days = getDaysInMonth(year, month);
-    // 30天及以下为小月，目标是14天；31天为大月，目标是15天
-    return days <= 30 ? 14 : 15;
+    const rule = (typeof getPlanRule === 'function') ? getPlanRule(year, month) : null;
+    const bigBase = rule ? rule.bigBase : DEFAULT_BIG_BASE;
+    const smallBase = rule ? rule.smallBase : DEFAULT_SMALL_BASE;
+    return days <= 30 ? smallBase : bigBase;
 }
 
 /**
- * 额外加班目标（固定为8天）
- * 
- * @constant {number} EXTRA_TARGET - 额外加班目标天数
+ * 默认目标天数（用户没有定制方案时使用）
+ * @constant {number} DEFAULT_BIG_BASE   - 大月（31 天）基础目标
+ * @constant {number} DEFAULT_SMALL_BASE - 小月（≤30 天）基础目标
+ * @constant {number} DEFAULT_EXTRA_TARGET - 额外加班目标
  */
-const EXTRA_TARGET = 8;
+const DEFAULT_BIG_BASE = 15;
+const DEFAULT_SMALL_BASE = 14;
+const DEFAULT_EXTRA_TARGET = 8;
+
+/**
+ * 额外加班目标（默认 8 天，可由方案定制）
+ *
+ * @param {number} year  - 年份
+ * @param {number} month - 月份（1-12）
+ * @returns {number} 额外加班目标天数
+ */
+function getExtraTarget(year, month) {
+    const rule = (typeof getPlanRule === 'function') ? getPlanRule(year, month) : null;
+    return rule ? rule.extra : DEFAULT_EXTRA_TARGET;
+}
+
+/** 兼容旧引用（历史代码里的 EXTRA_TARGET 常量） */
+const EXTRA_TARGET = DEFAULT_EXTRA_TARGET;
 
 /**
  * 计算额外加班天数
