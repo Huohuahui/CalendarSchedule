@@ -215,6 +215,7 @@ function clearCurrentMonth() {
         if (removed > 0) {
             fullUpdate();
             showToast('🧹 已清除 ' + removed + ' 个标记');
+            if (typeof analyticsTrack === 'function') analyticsTrack('clear_month');
         }
     } else {
         showToast('❌ 已取消清除操作');
@@ -868,4 +869,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 初始化云备份（已开启且域名允许时，恢复登录态）
     if (typeof initCloudBackup === 'function') initCloudBackup();
+
+    // 初始化使用统计（仅记录事件次数，不含任何内容；仅存本机）
+    if (typeof initAnalytics === 'function') initAnalytics();
 });

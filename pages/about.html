@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>关于 · 排班日历</title>
+    <meta name="description" content="关于排班日历：一个纯本地、零后端、可离线使用的免费开源排班工具。包含功能一览、数据与隐私说明、使用统计、反馈渠道与开源许可。">
+    <link rel="canonical" href="https://huohuahui.github.io/CalendarSchedule/pages/about.html">
+    <meta name="robots" content="index,follow">
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+    <link rel="stylesheet" href="../css/page.css">
+</head>
+
+<body>
+<div class="wrap">
+
+    <div class="top-bar">
+        <a class="back-link" href="../index.html">← 返回应用</a>
+        <span class="top-links">
+            <a class="back-link" href="privacy.html">隐私政策</a>
+        </span>
+    </div>
+
+    <div class="doc-hero">
+        <h1>关于排班日历</h1>
+        <p>一个纯本地、零后端、可离线使用的排班工具。它只做一件事：让你清楚地知道这个月加了多少班、离目标还差多少。</p>
+        <div class="doc-meta">
+            <span>版本 v1.0</span>
+            <span>2026-10-06</span>
+            <span>MIT 开源许可</span>
+            <span>免费 · 无广告 · 无需注册</span>
+        </div>
+    </div>
+
+    <!-- ========== 它是什么 ========== -->
+    <h2 id="what"><span class="n">1</span>它是什么</h2>
+
+    <p>这是一个<b>纯静态网页</b>：没有任何后端服务器，没有任何构建流程，没有第三方框架依赖。你把页面打开就能用，断网也能用。</p>
+
+    <p>它源于一个很具体的需求——很多岗位的月度加班目标是"因人而异"的：有人是大月 15 天、小月 14 天，有人是双休制，有人做一休一。市面上的工具要么把规则写死，要么要求注册账号、把数据传到云端。所以这里的做法是反过来的：</p>
+
+    <div class="card">
+        <ul style="margin:0">
+            <li><b>规则可定制</b>：大月 / 小月目标、额外上限都由你自己定，还能按月份分段生效。</li>
+            <li><b>数据不出本机</b>：默认全部存在你自己浏览器的本地存储里。</li>
+            <li><b>不用注册</b>：打开即用，没有账号、没有"登录后才能用"的墙。</li>
+        </ul>
+    </div>
+
+    <!-- ========== 功能一览 ========== -->
+    <h2 id="features"><span class="n">2</span>功能一览</h2>
+
+    <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>功能</th><th>说明</th></tr></thead>
+            <tbody>
+            <tr><td><b>排班标记</b></td><td>点击日期循环切换「加班 / 休息 / 普通」；也可拖拽按钮、或多选后批量标记</td></tr>
+            <tr><td><b>撤销 / 重做</b></td><td><code>Ctrl+Z</code> 撤销、<code>Ctrl+Shift+Z</code> 重做，批量操作整批回退</td></tr>
+            <tr><td><b>月度目标进度</b></td><td>「基础目标」与「额外加班」双进度条，实时统计本月加班与休息天数</td></tr>
+            <tr><td><b>可定制排班方案</b></td><td>大月 / 小月 / 额外上限自由设定；内置 5 套行业预设；支持「仅本月 / 从本月起 / 指定月份」分段生效，且<b>不会污染历史月份</b>的统计口径</td></tr>
+            <tr><td><b>农历与节气</b></td><td>由天文算法实时推算（非查表），覆盖 1900–2100 年；显示节气、三伏与白名单内的法定及传统节日</td></tr>
+            <tr><td><b>待办事项</b></td><td>总览式清单：新增 / 编辑 / 删除 / 勾选完成，按时间排序，逾期与今日高亮</td></tr>
+            <tr><td><b>临近提醒</b></td><td>事项临近时用页面内浮层提醒，次数按天封顶（当天 5 次 / 明天 3 次 / 2–3 天内 1 次），不刷屏</td></tr>
+            <tr><td><b>倒计时</b></td><td>自定义目标日期，自动显示剩余天数，支持分类与置顶</td></tr>
+            <tr><td><b>天气</b></td><td>当前天气 + 关键时段 + 未来 6 天；地点支持自动定位或手动选择（内置 100+ 常用城市）</td></tr>
+            <tr><td><b>备份中心</b></td><td>记录上次备份时间，到期提醒；支持导出文件、复制备份文本、粘贴文本导入</td></tr>
+            <tr><td><b>云备份（可选）</b></td><td>默认关闭。开启后可将整包快照存到你自己的账号下，换设备或清缓存后能恢复</td></tr>
+            <tr><td><b>主题与离线</b></td><td>多套主题配色；PWA 支持离线使用与「添加到主屏幕」</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========== 数据与隐私 ========== -->
+    <h2 id="privacy"><span class="n">3</span>数据与隐私（摘要）</h2>
+
+    <div class="callout ok">
+        <b>默认不上传任何数据。</b>你的排班、待办、倒计时、方案设置全部保存在你自己浏览器的本地存储里。
+        只有两个例外需要你主动开启：<b>天气定位</b>（把大致坐标发给第三方天气服务）和<b>云备份</b>（登录后存到你自己的账号下）。
+    </div>
+
+    <ul>
+        <li>不使用 Cookie，不投放广告，不使用第三方追踪脚本。</li>
+        <li>不索取通讯录、相册、麦克风、摄像头；不发送系统通知。</li>
+        <li>定位权限<b>仅用于确定城市以显示天气</b>，可以随时拒绝或撤回。</li>
+        <li>云备份的数据按账号隔离，他人无法读取；你随时可以退出登录或申请删除。</li>
+    </ul>
+
+    <p><b>逐项清单</b>（本机保存了哪些键、会向哪些第三方发请求、如何撤回授权与彻底删除）见
+        <a href="privacy.html">《隐私政策》</a>。</p>
+
+    <!-- ========== 使用统计 ========== -->
+    <h2 id="stats"><span class="n">4</span>使用统计</h2>
+
+    <p>为了知道功能有没有人在用、好不好用，本应用做了一个很小的统计。它<b>只记录事件名称和次数</b>，不记录任何内容：</p>
+
+    <div class="callout info">
+        <b>它不会记录：</b>你的待办写了什么、倒计时叫什么、哪天排了什么班、你在哪个城市、你的坐标或邮箱。<br>
+        <b>它只记录：</b>「标记排班：12 次」这样的计数。
+    </div>
+
+    <h3>本地统计（只存在你这台设备上）</h3>
+    <div class="card">
+        <div id="statsMeta" class="stat-meta"></div>
+        <div id="statsBody" class="stat-body"></div>
+    </div>
+
+    <h3>匿名统计上报（默认关闭）</h3>
+    <div class="card" id="optinBox">
+        <label class="optin-row">
+            <input type="checkbox" id="optinToggle">
+            <span>同意匿名使用统计上报</span>
+        </label>
+        <div class="optin-note" id="optinNote">读取中…</div>
+        <div class="optin-privacy">
+            我们不做「默认开启、事后告知」。这个开关默认关闭，且只有运营者配置了上报地址后才会生效；
+            任何情况下上报内容都只有计数，不含内容与身份信息。
+        </div>
+    </div>
+
+    <div style="margin-top:14px">
+        <button type="button" class="btn ghost" id="statsClearBtn">清除本机统计</button>
+    </div>
+
+    <!-- ========== 反馈与贡献 ========== -->
+    <h2 id="feedback"><span class="n">5</span>反馈与贡献</h2>
+
+    <div class="callout warn">
+        <b>先分清两件事：</b>
+        <b>反馈</b>（报告问题、提建议）走 <b>GitHub Issues</b>——只要一个账号，填文字就行，<b>不需要也不应该提交代码</b>；
+        <b>贡献代码</b>才走 <b>Pull Request</b>（Fork 仓库 → 改代码 → 发起合并请求）。
+        如果你只是想告诉我"哪里不好用"，请用 Issues，PR 不是给普通反馈用的。
+    </div>
+
+    <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>你想做的事</th><th>走哪里</th><th>需要的门槛</th></tr></thead>
+            <tbody>
+            <tr>
+                <td>报告一个 bug</td>
+                <td><a href="https://github.com/Huohuahui/CalendarSchedule/issues/new?template=bug_report.md" target="_blank" rel="noopener noreferrer">提交问题反馈</a></td>
+                <td>一个 GitHub 账号，填表单即可</td>
+            </tr>
+            <tr>
+                <td>提功能建议 / 吐槽体验</td>
+                <td><a href="https://github.com/Huohuahui/CalendarSchedule/issues/new?template=feature_request.md" target="_blank" rel="noopener noreferrer">提交功能建议</a></td>
+                <td>同上</td>
+            </tr>
+            <tr>
+                <td>看别人提过什么</td>
+                <td><a href="https://github.com/Huohuahui/CalendarSchedule/issues" target="_blank" rel="noopener noreferrer">Issues 列表</a></td>
+                <td>无需登录即可浏览</td>
+            </tr>
+            <tr>
+                <td>贡献代码 / 修 bug</td>
+                <td><a href="https://github.com/Huohuahui/CalendarSchedule" target="_blank" rel="noopener noreferrer">仓库地址</a> → Fork → 发起 Pull Request</td>
+                <td>需要会写代码</td>
+            </tr>
+            <tr>
+                <td>隐私相关请求（删除云端数据 / 注销账号）</td>
+                <td><span class="fill-me">【请填写：联系邮箱】</span></td>
+                <td>—</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p style="font-size:0.85rem;color:var(--ink3)">
+        说明：GitHub Issues 需要注册 GitHub 账号，对非技术用户确实有门槛。若你更希望「不用账号就能反馈」，
+        可以告诉我——那需要加一张云端反馈表，但会引入后端依赖。目前先用 Issues，保持项目零后端。
+    </p>
+
+    <!-- ========== 开源许可 ========== -->
+    <h2 id="license"><span class="n">6</span>开源许可</h2>
+
+    <p>本项目以 <b>MIT License</b> 开源。你可以自由使用、修改、分发，包括商用，只需保留版权声明与许可声明。</p>
+
+    <div class="license-text">MIT License
+
+Copyright (c) 2026 <span class="fill-me">【请填写：你的名字或昵称】</span>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</div>
+
+    <h3>第三方组件致谢</h3>
+    <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>组件</th><th>用途</th><th>许可</th></tr></thead>
+            <tbody>
+            <tr>
+                <td><a href="https://github.com/6tail/lunar-javascript" target="_blank" rel="noopener noreferrer">lunar-javascript</a>（v1.6.11）</td>
+                <td>农历、节气、传统节日的天文算法推算</td>
+                <td>MIT</td>
+            </tr>
+            <tr>
+                <td><a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a></td>
+                <td>天气数据与城市地理编码（外部服务，非捆绑代码）</td>
+                <td>CC BY 4.0 / 免费 API</td>
+            </tr>
+            <tr>
+                <td><a href="https://www.bigdatacloud.com/" target="_blank" rel="noopener noreferrer">BigDataCloud</a></td>
+                <td>坐标反查城市名（外部服务）</td>
+                <td>免费 API</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>本项目的界面不依赖任何前端框架，图标使用系统 Emoji 与自绘 PNG，无第三方 UI 库。</p>
+
+    <!-- ========== 免责 ========== -->
+    <h2 id="disclaimer"><span class="n">7</span>免责声明</h2>
+
+    <ul>
+        <li>本项目按<b>"现状"</b>提供，不承诺可用性、无中断或无错误。</li>
+        <li>排班与加班统计<b>仅供参考，不构成工时证明或薪酬依据</b>。</li>
+        <li>天气数据来自第三方，农历节气由算法推算，均可能存在误差。</li>
+        <li><b>清除浏览器数据造成的本地数据丢失不可恢复</b>，请定期备份。</li>
+    </ul>
+
+    <div class="doc-footer">
+        排班日历 v1.0 · MIT 开源许可<br>
+        <a href="../index.html">返回应用</a> · <a href="privacy.html">隐私政策</a>
+    </div>
+
+</div>
+
+<script src="../js/analytics.js"></script>
+<script src="../js/about.js"></script>
+</body>
+
+</html>

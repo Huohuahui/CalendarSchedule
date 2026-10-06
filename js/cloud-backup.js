@@ -399,6 +399,7 @@ function cbBackupNow() {
         }
         markCloudBackedUp();
         cbSetStatus('✅ 已备份到云（' + itemCount + ' 个标记）', false);
+        if (typeof analyticsTrack === 'function') analyticsTrack('backup_cloud');
         cbRerender();
     }).catch(function (e) {
         cbBusy = false;
@@ -435,6 +436,7 @@ function cbRestore() {
         var out = applyImportedBackup(row.payload);
         if (!out.ok && !out.cancelled) { cbSetStatus(out.msg, true); cbRerender(); return; }
         cbSetStatus(out.ok ? '✅ 已从云端恢复' : '已取消', false);
+        if (out.ok && typeof analyticsTrack === 'function') analyticsTrack('restore_cloud');
         updateBackupBadge();
         cbRerender();
     }).catch(function (e) {

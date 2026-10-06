@@ -493,6 +493,7 @@ function submitTodoForm() {
             createdAt: Date.now()
         });
         showToast('✅ 已添加待办');
+        if (typeof analyticsTrack === 'function') analyticsTrack('todo_add');
     }
 
     todoEditingId = null;

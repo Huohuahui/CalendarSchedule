@@ -516,6 +516,10 @@
 .footer-hints .footer-link.disabled:hover {
     color: #94a3b8;
 }
+/* 「关于」是链接元素，去掉下划线与浏览器默认链接色 */
+.footer-hints a.footer-link {
+    text-decoration: none;
+}
 
 /* ---------- 排班模板弹窗 ---------- */
 .template-item {

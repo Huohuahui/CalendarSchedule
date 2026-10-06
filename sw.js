@@ -13,7 +13,7 @@
  * ============================================================
  */
 
-var CACHE_NAME = 'schedule-calendar-v10';
+var CACHE_NAME = 'schedule-calendar-v11';
 
 // 说明：Service Worker 必须放在站点根目录，否则它的作用范围（scope）
 // 只能覆盖自己所在的子目录，就无法缓存 index.html / css / js 了。
@@ -35,8 +35,10 @@ var PRECACHE_URLS = [
     './css/themes.css',
     './css/todo.css',
     './css/backup.css',
+    './css/page.css',
     './js/lunar.min.js',
     './js/utils.js',
+    './js/analytics.js',
     './js/storage.js',
     './js/history.js',
     './js/progress.js',
@@ -52,7 +54,10 @@ var PRECACHE_URLS = [
     './js/backup.js',
     './js/cloud-config.js',
     './js/cloud-backup.js',
-    './js/main.js'
+    './js/about.js',
+    './js/main.js',
+    './pages/about.html',
+    './pages/privacy.html'
 ];
 
 // ---------- 安装：预缓存核心资源 ----------
@@ -116,14 +121,19 @@ self.addEventListener('fetch', function (event) {
                 .then(function (response) {
                     if (response && response.status === 200) {
                         var clone = response.clone();
+                        // 按「本次请求的地址」缓存：不能一律写进 index.html，
+                        // 否则访问 关于页 会把首页缓存覆盖掉
                         caches.open(CACHE_NAME).then(function (cache) {
-                            cache.put('./index.html', clone);
+                            cache.put(request, clone);
                         });
                     }
                     return response;
                 })
                 .catch(function () {
-                    return caches.match('./index.html');
+                    // 离线：先找该页自己的缓存，找不到再回退到首页
+                    return caches.match(request).then(function (hit) {
+                        return hit || caches.match('./index.html');
+                    });
                 })
         );
         return;

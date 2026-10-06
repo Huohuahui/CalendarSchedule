@@ -136,6 +136,7 @@ function addCountdownItem(name, targetDate, category, subCategory, pinned) {
     });
     saveCountdownList(list);
     renderCountdownList();
+    if (typeof analyticsTrack === 'function') analyticsTrack('countdown_add');
     return true;
 }
 

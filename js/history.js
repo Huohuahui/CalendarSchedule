@@ -36,6 +36,7 @@ function applyChanges(changes) {
 
     writeStatus(real, 'to');
     saveToStorage();
+    if (typeof analyticsTrack === 'function') analyticsTrack('mark_schedule');
     return real.length;
 }
 

@@ -1,10 +1,36 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>加班/休息标记日历</title>
+
+    <!-- ===== 基础 SEO ===== -->
+    <title>排班日历 · 加班休息标记与月度目标进度</title>
+    <meta name="description"
+        content="免费开源的排班日历：点击即可标记加班与休息，追踪每月基础目标与额外加班进度。支持自定义大月/小月目标、农历节气、待办提醒、未来 6 天天气与离线使用。纯本地运行，数据只存本机、不上传服务器。">
+    <meta name="keywords" content="排班日历,加班日历,倒班排班,休息记录,月度目标,农历节气,排班表,考勤记录,离线日历">
+    <meta name="author" content="Huohuahui">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://huohuahui.github.io/CalendarSchedule/">
+
+    <!-- ===== 社交分享（Open Graph / Twitter） ===== -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="排班日历">
+    <meta property="og:locale" content="zh_CN">
+    <meta property="og:title" content="排班日历 · 加班休息标记与月度目标进度">
+    <meta property="og:description"
+        content="点击标记加班与休息，追踪每月目标进度。可自定义排班规则、带农历节气与待办提醒，纯本地运行、打开即用、可离线。">
+    <meta property="og:url" content="https://huohuahui.github.io/CalendarSchedule/">
+    <meta property="og:image" content="https://huohuahui.github.io/CalendarSchedule/icons/icon-512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="排班日历 · 加班休息标记与月度目标进度">
+    <meta name="twitter:description"
+        content="点击标记加班与休息，追踪每月目标进度。可自定义排班规则、带农历节气与待办提醒，纯本地运行、打开即用、可离线。">
+    <meta name="twitter:image" content="https://huohuahui.github.io/CalendarSchedule/icons/icon-512.png">
+
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/calendar.css">
     <link rel="stylesheet" href="css/sidebar.css">
@@ -22,6 +48,39 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#3b82f6">
+
+    <!-- ===== 结构化数据（帮助搜索引擎理解这是什么应用） ===== -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "排班日历",
+        "alternateName": "加班/休息标记日历",
+        "url": "https://huohuahui.github.io/CalendarSchedule/",
+        "description": "免费开源的排班日历：标记每天的加班与休息，追踪每月基础目标与额外加班进度，支持自定义排班规则、农历节气、待办提醒、天气与离线使用。",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Web (任何现代浏览器)",
+        "inLanguage": "zh-CN",
+        "isAccessibleForFree": true,
+        "license": "https://opensource.org/licenses/MIT",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "CNY"
+        },
+        "featureList": [
+            "加班与休息日历标记",
+            "可定制的月度目标与排班方案",
+            "农历、节气与传统节日",
+            "待办事项与临近提醒",
+            "倒计时",
+            "未来 6 天天气（自动定位或手动选城市）",
+            "数据本地备份与导出",
+            "多主题配色",
+            "离线可用（PWA）"
+        ]
+    }
+    </script>
 </head>
 
 <body>
@@ -129,6 +188,8 @@
                     <span id="backupBtn" class="footer-link" title="备份 / 恢复数据">💾 备份</span>
                     <span class="hint-sep">·</span>
                     <span id="importBtn" class="footer-link">📂 导入</span>
+                    <span class="hint-sep">·</span>
+                    <a id="aboutLink" class="footer-link" href="pages/about.html">ℹ️ 关于</a>
                 </div>
                 <div class="action-group">
                     <button class="action-btn clear-btn" id="clearMonthBtn">🗑️ 清除</button>
@@ -216,6 +277,7 @@
     <!-- 农历算法库（lunar-javascript，约 300KB，本地 + 离线缓存，不阻塞渲染） -->
     <script src="js/lunar.min.js" defer></script>
     <script src="js/utils.js" defer></script>
+    <script src="js/analytics.js" defer></script>
     <script src="js/storage.js" defer></script>
     <script src="js/history.js" defer></script>
     <script src="js/progress.js" defer></script>

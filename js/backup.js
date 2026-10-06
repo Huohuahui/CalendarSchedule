@@ -118,6 +118,7 @@ function markBackedUp() {
     m.lastFingerprint = currentBackupFingerprint();
     saveBackupMeta(m);
     updateBackupBadge();
+    if (typeof analyticsTrack === 'function') analyticsTrack('backup_local');
 }
 
 /** 标记「刚刚云备份过」 */

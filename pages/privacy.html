@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>隐私政策 · 排班日历</title>
+    <meta name="description" content="排班日历隐私政策：数据默认全部保存在你本机浏览器，不上传服务器；逐项说明本地存储内容、第三方请求、定位权限用途，以及你查询、导出、删除数据与撤回授权的具体方法。">
+    <link rel="canonical" href="https://huohuahui.github.io/CalendarSchedule/pages/privacy.html">
+    <meta name="robots" content="index,follow">
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📅</text></svg>">
+    <link rel="stylesheet" href="../css/page.css">
+</head>
+
+<body>
+<div class="wrap">
+
+    <div class="top-bar">
+        <a class="back-link" href="../index.html">← 返回应用</a>
+        <span class="top-links">
+            <a class="back-link" href="about.html">关于</a>
+        </span>
+    </div>
+
+    <div class="doc-hero">
+        <h1>隐私政策</h1>
+        <p>本政策逐项说明「排班日历」在你使用过程中究竟会读取、保存、传出哪些信息，以及你如何随时查看与删除它们。我们不使用模糊措辞——凡是会发生的事情，下面都会写明。</p>
+        <div class="doc-meta">
+            <span>生效日期：2026-10-06</span>
+            <span>版本：v1.0</span>
+            <span>适用：本应用全部页面</span>
+        </div>
+    </div>
+
+    <div class="callout ok">
+        <b>一句话摘要：</b>默认情况下，本应用<b>不收集、不上传你的任何个人信息</b>。你的排班、待办、倒计时等数据全部保存在你自己浏览器的本地存储里。
+        只有两项例外需要你主动开启：<b>天气定位</b>（把大致坐标发给第三方天气服务以显示当地天气）和<b>云备份</b>（登录后把一份快照存到你自己的账号下）。
+        两者都可以随时关闭，关闭后不再产生任何相关请求。
+    </div>
+
+    <div class="doc-toc">
+        <div class="toc-title">目录</div>
+        <ol>
+            <li><a href="#s1">适用范围与运营者</a></li>
+            <li><a href="#s2">默认情况：我们不收集个人信息</a></li>
+            <li><a href="#s3">本机保存的内容（逐项清单）</a></li>
+            <li><a href="#s4">需要你主动授权的能力</a></li>
+            <li><a href="#s5">第三方服务清单</a></li>
+            <li><a href="#s6">云备份（可选功能）</a></li>
+            <li><a href="#s7">Cookie 与同类技术</a></li>
+            <li><a href="#s8">使用统计（可选埋点）</a></li>
+            <li><a href="#s9">数据安全</a></li>
+            <li><a href="#s10">你的权利与操作方法</a></li>
+            <li><a href="#s11">数据保留期限</a></li>
+            <li><a href="#s12">未成年人保护</a></li>
+            <li><a href="#s13">政策变更</a></li>
+            <li><a href="#s14">免责声明</a></li>
+            <li><a href="#s15">联系我们与反馈</a></li>
+            <li><a href="#s16">附录：如何彻底清除本应用数据</a></li>
+        </ol>
+    </div>
+
+    <!-- ========== 1 ========== -->
+    <h2 id="s1"><span class="n">1</span>适用范围与运营者</h2>
+
+    <p>本政策适用于「排班日历」（下称"本应用"）的全部页面与功能，包括主页、<a href="about.html">关于页</a>及本页。</p>
+
+    <div class="tbl-wrap">
+        <table>
+            <tbody>
+            <tr><th style="width:130px">应用名称</th><td>排班日历（加班 / 休息标记日历）</td></tr>
+            <tr><th>运营者</th><td><span class="fill-me">【请填写：你的名字或昵称】</span></td></tr>
+            <tr><th>联系方式</th><td><span class="fill-me">【请填写：联系邮箱】</span>（或通过下方"反馈渠道"联系）</td></tr>
+            <tr><th>应用性质</th><td>个人开发的免费开源工具，<b>无商业运营、无广告、不作任何商业化数据利用</b></td></tr>
+            <tr><th>是否有服务器</th><td>默认<b>没有</b>。本应用是纯静态网页，默认不向任何自有服务器发送数据</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout warn">
+        <b>请注意：</b>本应用是一个本地工具，不是云端服务。这意味着——<b>一旦你清除了浏览器数据、卸载浏览器或重装系统，本机数据将无法由任何一方（包括我们）恢复。</b>
+        请按第 10 节的方法定期备份。
+    </div>
+
+    <!-- ========== 2 ========== -->
+    <h2 id="s2"><span class="n">2</span>默认情况：我们不收集个人信息</h2>
+
+    <p>在你不做任何额外授权的前提下，本应用：</p>
+
+    <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>事项</th><th>默认状态</th><th>说明</th></tr></thead>
+            <tbody>
+            <tr><td>是否要求注册 / 登录</td><td><span class="tag no">不要求</span></td><td>打开即用</td></tr>
+            <tr><td>是否收集姓名 / 手机号 / 邮箱</td><td><span class="tag no">不收集</span></td><td>仅在你自己开启云备份并注册时才会用到邮箱</td></tr>
+            <tr><td>是否上传你的排班 / 待办内容</td><td><span class="tag no">不上传</span></td><td>全部留在本机</td></tr>
+            <tr><td>是否使用 Cookie</td><td><span class="tag no">不使用</span></td><td>仅使用浏览器本地存储（localStorage）</td></tr>
+            <tr><td>是否投放广告</td><td><span class="tag no">没有</span></td><td>无任何广告或广告 SDK</td></tr>
+            <tr><td>是否使用第三方统计 / 追踪</td><td><span class="tag no">默认关闭</span></td><td>见第 8 节；本地统计只存在你本机</td></tr>
+            <tr><td>是否索取通讯录 / 相册 / 麦克风 / 摄像头</td><td><span class="tag no">不索取</span></td><td>本应用没有这些功能</td></tr>
+            <tr><td>是否发送系统通知</td><td><span class="tag no">不发送</span></td><td>待办提醒是页面内的浮层，不使用系统通知权限</td></tr>
+            <tr><td>是否在后台运行</td><td><span class="tag no">不运行</span></td><td>关闭页面后不再执行任何操作</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout info">
+        <b>唯一"自动发生"的网络请求：</b>打开主页时，本应用会向第三方天气服务（Open-Meteo）请求天气数据。这个请求会带上坐标——
+        在你<b>没有</b>授权定位的情况下，使用的是应用内置的默认城市（汕头）坐标，与你的真实位置无关。
+        若你不希望产生这个请求，请使用可拦截网络请求的浏览器扩展，或在第 5 节查看该服务的隐私政策。
+    </div>
+
+    <!-- ========== 3 ========== -->
+    <h2 id="s3"><span class="n">3</span>本机保存的内容（逐项清单）</h2>
+
+    <p>本应用使用浏览器的 <code>localStorage</code> 保存数据。以下是<b>全部</b>键名与用途，没有遗漏项：</p>
+
+    <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>存储键</th><th>保存什么</th><th>是否可能含个人信息</th></tr></thead>
+            <tbody>
+            <tr>
+                <td><code>workStatusMap</code></td>
+                <td>你标记的每天状态（加班 / 休息）与对应日期</td>
+                <td><span class="tag need">间接</span> 可通过作息推断，但不含身份信息</td>
+            </tr>
+            <tr>
+                <td><code>todoList</code></td>
+                <td>待办的「主题 / 具体事宜 / 日期 / 是否完成」</td>
+                <td><span class="tag need">是</span> 内容由你自行填写，可能包含你写进去的任何信息</td>
+            </tr>
+            <tr>
+                <td><code>countdownList</code></td>
+                <td>倒计时的名称、目标日期、分类</td>
+                <td><span class="tag need">是</span> 同上，名称由你填写</td>
+            </tr>
+            <tr>
+                <td><code>schedulePlan</code></td>
+                <td>你的排班方案：大月/小月目标天数、额外上限、方案名、生效月份</td>
+                <td><span class="tag no">否</span></td>
+            </tr>
+            <tr>
+                <td><code>weatherLocation</code></td>
+                <td>当前天气地点：城市名 + 经纬度 + 来源（自动定位 / 手动选择）</td>
+                <td><span class="tag need">是</span> 若使用自动定位，即为你当时的位置</td>
+            </tr>
+            <tr>
+                <td><code>weatherCache</code></td>
+                <td>最近一次天气数据缓存（含坐标副本，用于校验地点是否已切换）</td>
+                <td><span class="tag need">是</span> 含上述坐标</td>
+            </tr>
+            <tr>
+                <td><code>calendar_theme</code></td>
+                <td>你选择的主题色标识</td>
+                <td><span class="tag no">否</span></td>
+            </tr>
+            <tr>
+                <td><code>todoReminderLog</code></td>
+                <td>待办提醒的计数（日期 + 待办编号 + 次数），只保留最近 3 天</td>
+                <td><span class="tag no">否</span></td>
+            </tr>
+            <tr>
+                <td><code>backupMeta</code></td>
+                <td>上次备份时间、数据指纹（哈希值）、上次云备份时间</td>
+                <td><span class="tag no">否</span> 指纹为不可逆摘要</td>
+            </tr>
+            <tr>
+                <td><code>backupRemindLog</code></td>
+                <td>备份提醒日期（保证每天最多提醒一次）</td>
+                <td><span class="tag no">否</span></td>
+            </tr>
+            <tr>
+                <td><code>cloudBackupEnabled</code></td>
+                <td>云备份开关状态</td>
+                <td><span class="tag no">否</span></td>
+            </tr>
+            <tr>
+                <td><code>analyticsLocal</code></td>
+                <td>本机使用统计：打开次数、使用天数、各功能点击次数等计数</td>
+                <td><span class="tag no">否</span> <b>仅记录事件名称与次数，不记录任何内容</b></td>
+            </tr>
+            <tr>
+                <td><code>analyticsOptin</code></td>
+                <td>是否同意匿名使用统计上报</td>
+                <td><span class="tag no">否</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>另外，本应用通过 <b>Service Worker</b> 缓存页面所需的程序文件（HTML / CSS / JS / 图标），以便离线使用。缓存内容为程序本身，<b>不包含你的任何数据</b>。</p>
+
+    <p><b>这些数据不会离开你的设备</b>，除非你主动使用第 6 节的云备份，或主动导出文件后自行发送给他人。</p>
+
+    <!-- ========== 4 ========== -->
+    <h2 id="s4"><span class="n">4</span>需要你主动授权的能力</h2>
+
+    <p>本应用会请求或使用以下能力，<b>全部只在对应功能被使用时才触发，且全部可拒绝</b>：</p>
+
+    <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>能力</th><th>用途</th><th>触发时机</th><th>拒绝的后果</th></tr></thead>
+            <tbody>
+            <tr>
+                <td><b>位置信息</b><br>（浏览器定位）</td>
+                <td>仅用于确定你所在城市，以显示当地天气</td>
+                <td>首次访问时先展示本站说明卡，你点「允许定位」后浏览器才弹权限框</td>
+                <td>不影响任何其它功能；天气改用默认城市，你仍可手动选城市</td>
+            </tr>
+            <tr>
+                <td>剪贴板（写入）</td>
+                <td>把你点击「复制备份文本」时的备份内容写入剪贴板</td>
+                <td>仅在你点击该按钮时</td>
+                <td>无影响，可改用导出文件</td>
+            </tr>
+            <tr>
+                <td>文件下载</td>
+                <td>导出备份文件（.json）到你的设备</td>
+                <td>仅在你点击「导出文件」时</td>
+                <td>无影响</td>
+            </tr>
+            <tr>
+                <td>文件读取</td>
+                <td>读取你选择的备份文件以恢复数据</td>
+                <td>仅在你点击「选择文件导入」并选中文件时</td>
+                <td>无影响，可改用粘贴文本导入</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout info">
+        <b>关于定位，有三点需要明确：</b>
+        <ul style="margin:6px 0">
+            <li><b>浏览器权限框的文案由浏览器决定</b>，网页无法修改。因此我们在触发它之前，先展示一张自己写的说明卡，讲清"仅用于获取天气地点"。</li>
+            <li>本应用无法在未经你同意的情况下获取位置，也无法在后台持续获取。</li>
+            <li>定位仅在安全上下文（HTTPS 或 localhost）下可用；直接以 <code>file://</code> 打开文件时浏览器会禁用定位。</li>
+        </ul>
+    </div>
+
+    <!-- ========== 5 ========== -->
+    <h2 id="s5"><span class="n">5</span>第三方服务清单</h2>
+
+    <p>本应用会向以下第三方发起请求。我们<b>不参与也无法控制</b>这些服务对请求的日志留存，建议你阅读它们各自的隐私政策。</p>
+
+    <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>域名 / 提供方</th><th>用途</th><th>传出的内容</th><th>何时发生</th></tr></thead>
+            <tbody>
+            <tr>
+                <td><code>api.open-meteo.com</code><br>Open-Meteo（开源免费天气服务）</td>
+                <td>获取当前天气与未来 6 天预报</td>
+                <td>纬度、经度（不含身份信息）</td>
+                <td>打开主页时<b>自动</b>；点击「刷新」时</td>
+            </tr>
+            <tr>
+                <td><code>geocoding-api.open-meteo.com</code><br>Open-Meteo 地理编码</td>
+                <td>按名称搜索城市</td>
+                <td>你在城市搜索框里输入的文字</td>
+                <td>仅当你在「选择城市」弹窗中搜索时</td>
+            </tr>
+            <tr>
+                <td><code>api.bigdatacloud.net</code><br>BigDataCloud</td>
+                <td>把坐标反查为城市名，用于在标题上显示城市</td>
+                <td>纬度、经度</td>
+                <td>仅当你使用自动定位并成功取得坐标后</td>
+            </tr>
+            <tr>
+                <td><code>cdn.jsdelivr.net</code><br>jsDelivr（开源 CDN）</td>
+                <td>加载云备份所需的程序库</td>
+                <td>常规网络请求信息（IP 地址由 CDN 服务方可见）</td>
+                <td><b>仅在你开启云备份之后</b>；未开启时不会加载</td>
+            </tr>
+            <tr>
+                <td>本应用的云服务域名<br>（WorkBuddy 云服务）</td>
+                <td>账号登录与云备份数据的存储</td>
+                <td>你的邮箱、云备份快照</td>
+                <td><b>仅在你开启云备份并登录之后</b></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="callout warn">
+        <b>你可以把天气请求降到最低：</b>本应用没有"完全离线"的天气选项，但天气失败时不会影响其它功能。
+        若你完全不希望产生该类请求，不要开启定位、也不要做城市搜索，此时应用仍能正常使用排班、农历、待办等全部本地功能。
+    </div>
+
+    <!-- ========== 6 ========== -->
+    <h2 id="s6"><span class="n">6</span>云备份（可选功能）</h2>
+
+    <p>云备份是本应用<b>唯一会把你数据传出设备</b>的功能，<b>默认关闭</b>。</p>
+
+    <h3>6.1 开启后会发生什么</h3>
+    <ul>
+        <li>你需要<b>注册 / 登录一个账号</b>（当前仅支持邮箱：密码登录、邮箱验证码登录、忘记密码）。</li>
+        <li>你可以手动把一份<b>完整数据快照</b>（排班 + 待办 + 倒计时 + 排班方案 + 主题）上传到你自己的账号下。</li>
+        <li>数据<b>按账号隔离</b>：换一个账号登录，看不到上一个账号的数据。</li>
+        <li>恢复时，云端快照会<b>整包覆盖</b>本机数据，操作前会有二次确认。</li>
+    </ul>
+
+    <h3>6.2 我们不做什么</h3>
+    <ul>
+        <li>我们<b>不会</b>在你未开启该功能时上传任何数据。</li>
+        <li>我们<b>不会</b>读取、分析或利用你的备份内容（排班、待办等）做任何用途。</li>
+        <li>我们<b>不会</b>把你的数据提供给第三方用于营销或画像。</li>
+    </ul>
+
+    <h3>6.3 你的控制权</h3>
+    <ul>
+        <li><b>随时关闭</b>：关闭云备份开关后，应用不再加载相关程序库、也不再发起任何云请求。</li>
+        <li><b>退出登录</b>：在云备份区块点「退出登录」，本机不再保留登录态。</li>
+        <li><b>删除云端数据</b>：请通过第 15 节的反馈渠道提出，我们会在核验后删除你账号下的备份记录。</li>
+    </ul>
+
+    <div class="callout info">
+        <b>技术说明（为什么云备份必须登录）：</b>云端对每份数据都强制要求归属到一个账号（行级安全策略），
+        因此本应用<b>不提供</b>匿名上传或"设备号"方案——那既无法保证你的数据不被他人读到，也无法在换设备后找回。
+    </div>
+
+    <!-- ========== 7 ========== -->
+    <h2 id="s7"><span class="n">7</span>Cookie 与同类技术</h2>
+
+    <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>技术</th><th>是否使用</th><th>用途</th></tr></thead>
+            <tbody>
+            <tr><td>Cookie</td><td><span class="tag no">不使用</span></td><td>—</td></tr>
+            <tr><td>localStorage</td><td><span class="tag ok">使用</span></td><td>保存你的数据与设置，见第 3 节</td></tr>
+            <tr><td>Service Worker 缓存</td><td><span class="tag ok">使用</span></td><td>缓存程序文件以支持离线访问</td></tr>
+            <tr><td>像素 / 指纹 / 跨站追踪</td><td><span class="tag no">不使用</span></td><td>—</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>因为不使用 Cookie，本应用<b>不提供也不需要</b>Cookie 同意横幅。</p>
+
+    <!-- ========== 8 ========== -->
+    <h2 id="s8"><span class="n">8</span>使用统计（可选埋点）</h2>
+
+    <p>为了解功能是否好用，本应用提供两级统计，<b>分开控制</b>：</p>
+
+    <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>类型</th><th>默认</th><th>记录什么</th><th>是否离开设备</th></tr></thead>
+            <tbody>
+            <tr>
+                <td><b>本地使用统计</b></td>
+                <td><span class="tag ok">开启</span></td>
+                <td>打开次数、使用天数、各功能被使用的<b>次数</b>（如"标记排班 12 次"）</td>
+                <td><span class="tag no">否</span> 只存在你本机</td>
+            </tr>
+            <tr>
+                <td><b>匿名统计上报</b></td>
+                <td><span class="tag no">关闭</span></td>
+                <td>同上，且不含任何内容与身份标识</td>
+                <td>仅在你<b>主动开启</b>后，且需运营者已配置上报地址</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p><b>我们承诺统计模块不会记录</b>：你的待办内容、倒计时名称、排班的具体日期、城市名、坐标、邮箱或任何可识别你身份的信息。统计只包含"事件名称 + 次数 + 日期"。</p>
+
+    <p>你可以在<a href="about.html#stats">关于页</a>查看当前的本地统计，并一键清除。</p>
+
+    <!-- ========== 9 ========== -->
+    <h2 id="s9"><span class="n">9</span>数据安全</h2>
+
+    <ul>
+        <li><b>本机数据</b>受浏览器同源策略保护，其它网站无法读取。</li>
+        <li>由于默认没有服务器，也就不存在"集中存储的数据库被拖库"这类风险。</li>
+        <li>云备份通过 <b>HTTPS</b> 传输；账号凭据由云服务提供方管理，本应用不接触、不保存你的密码明文。</li>
+    </ul>
+
+    <div class="callout bad">
+        <b>你必须注意的风险：</b>如果他人能使用你的电脑、你的浏览器账号或你的已解锁手机，<b>他们就能看到你的全部数据</b>——
+        因为本应用没有独立的密码锁。在共用设备上，请使用浏览器的访客模式或独立用户配置，用完后按第 16 节清除数据。
+    </div>
+
+    <!-- ========== 10 ========== -->
+    <h2 id="s10"><span class="n">10</span>你的权利与操作方法</h2>
+
+    <p>你对自己的数据拥有完整控制权。以下每一项都<b>不需要联系我们就可自行完成</b>：</p>
+
+    <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>你的权利</th><th>怎么做</th></tr></thead>
+            <tbody>
+            <tr>
+                <td><b>查阅</b>本机保存的数据</td>
+                <td>浏览器按 <code>F12</code> → <b>Application / 应用</b> → <b>Local Storage</b> → 选中本站，即可逐条查看</td>
+            </tr>
+            <tr>
+                <td><b>导出</b>（数据可携带）</td>
+                <td>应用底部 →「💾 备份」→「导出文件」或「复制备份文本」，得到一份完整且可读的 JSON</td>
+            </tr>
+            <tr>
+                <td><b>更正 / 删除单项</b></td>
+                <td>直接在应用内操作：点击日期改状态、在待办里编辑或删除、用「清除」清空某月</td>
+            </tr>
+            <tr>
+                <td><b>删除全部本机数据</b></td>
+                <td>见第 16 节的操作步骤（一键清除站点数据）</td>
+            </tr>
+            <tr>
+                <td><b>撤回位置授权</b></td>
+                <td>点击浏览器地址栏左侧的<b>锁形 / 站点信息图标</b> → 找到"位置"→ 改为"询问"或"阻止"；
+                    也可在浏览器设置的"网站权限 → 位置信息"中删除本站授权</td>
+            </tr>
+            <tr>
+                <td><b>撤回云备份</b></td>
+                <td>在备份中心的云备份区块「退出登录」并关闭开关</td>
+            </tr>
+            <tr>
+                <td><b>注销云账号 / 删除云端数据</b></td>
+                <td>通过第 15 节的反馈渠道提出，我们核验后处理</td>
+            </tr>
+            <tr>
+                <td><b>关闭使用统计</b></td>
+                <td>在<a href="about.html#stats">关于页</a>关闭开关，或一键清除本地统计</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========== 11 ========== -->
+    <h2 id="s11"><span class="n">11</span>数据保留期限</h2>
+
+    <div class="tbl-wrap">
+        <table>
+            <thead><tr><th>数据</th><th>保留多久</th></tr></thead>
+            <tbody>
+            <tr><td>本机数据（排班 / 待办 / 倒计时 / 设置）</td><td>保存在你的浏览器中，<b>直到你主动删除</b>，我们不设期限也无法远程删除</td></tr>
+            <tr><td>待办提醒计数</td><td>自动只保留最近 3 天</td></tr>
+            <tr><td>天气缓存</td><td>10 分钟后失效；切换地点时立即清除</td></tr>
+            <tr><td>本地使用统计</td><td>直到你在关于页清除</td></tr>
+            <tr><td>云端备份快照</td><td>直到你删除或申请注销账号</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========== 12 ========== -->
+    <h2 id="s12"><span class="n">12</span>未成年人保护</h2>
+
+    <ul>
+        <li>本应用是通用效率工具，<b>不面向 14 周岁以下儿童单独提供服务</b>，也不含任何面向儿童的诱导性内容、游戏或付费项目。</li>
+        <li>本应用不主动收集儿童的任何个人信息。</li>
+        <li>若你是未成年人，请在监护人指导下使用；如需开启云备份（涉及邮箱），建议先征得监护人同意。</li>
+        <li>若监护人发现儿童在未经同意的情况下注册了云备份账号，可通过第 15 节联系我们删除。</li>
+    </ul>
+
+    <!-- ========== 13 ========== -->
+    <h2 id="s13"><span class="n">13</span>政策变更</h2>
+
+    <ul>
+        <li>本政策如有更新，我们会修改本页顶部的<b>生效日期与版本号</b>。</li>
+        <li>若变更涉及<b>新增数据收集行为或新增第三方共享</b>，我们会在应用内以提示方式告知，而不仅是在本页静默修改。</li>
+        <li>继续使用即表示你接受更新后的政策；若不接受，可停止使用并按第 16 节清除数据。</li>
+    </ul>
+
+    <!-- ========== 14 ========== -->
+    <h2 id="s14"><span class="n">14</span>免责声明</h2>
+
+    <ul>
+        <li>本应用为个人开发的免费开源工具，按<b>"现状"</b>提供，不对可用性、无中断或无错误作出承诺。</li>
+        <li><b>排班与加班统计仅供参考</b>，用于个人记录与自我管理，<b>不构成任何形式的工时证明、薪酬依据或法律证据</b>。因使用本应用产生的任何劳动争议或经济损失，开发者不承担责任。</li>
+        <li><b>天气数据来自第三方</b>（Open-Meteo 等），我们不对其准确性、完整性或可用性负责。</li>
+        <li><b>农历与节气由算法推算</b>，可能存在计算误差；涉及择日、祭祀等严肃用途时请以权威历书为准。</li>
+        <li><b>数据丢失不可恢复</b>：因清除浏览器数据、卸载、设备损坏或更换设备造成的本地数据丢失，开发者无法找回。请务必定期备份。</li>
+        <li>本应用可能包含指向第三方网站的链接（如 GitHub、第三方服务），该等内容不受本政策约束。</li>
+    </ul>
+
+    <!-- ========== 15 ========== -->
+    <h2 id="s15"><span class="n">15</span>联系我们与反馈</h2>
+
+    <div class="tbl-wrap">
+        <table>
+            <tbody>
+            <tr><th style="width:130px">问题反馈 / 功能建议</th><td><a href="https://github.com/Huohuahui/CalendarSchedule/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a>（普通反馈走这里，只需账号、无需写代码）</td></tr>
+            <tr><th>代码贡献</th><td><a href="https://github.com/Huohuahui/CalendarSchedule" target="_blank" rel="noopener noreferrer">GitHub 仓库</a> → Fork → 提交 Pull Request（这是给"改代码"的贡献者用的渠道，不是普通反馈渠道）</td></tr>
+            <tr><th>隐私相关请求</th><td><span class="fill-me">【请填写：联系邮箱】</span>（用于数据删除、账号注销等）</td></tr>
+            <tr><th>响应时间</th><td>个人项目，通常在数日内回复，无法承诺固定时限</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========== 16 ========== -->
+    <h2 id="s16"><span class="n">16</span>附录：如何彻底清除本应用数据</h2>
+
+    <p>以下操作会<b>永久删除</b>本应用在你设备上的全部数据，且不可恢复。执行前建议先导出备份。</p>
+
+    <h3>Chrome / Edge（桌面）</h3>
+    <ol>
+        <li>打开本应用，按 <code>F12</code> 打开开发者工具；</li>
+        <li>切到 <b>Application（应用）</b> 面板 → 左侧 <b>Storage（存储）</b>；</li>
+        <li>点击 <b>Clear site data（清除网站数据）</b> 按钮。</li>
+    </ol>
+    <p>也可以走常规途径：地址栏左侧站点图标 → <b>Cookie 和网站数据</b> → 删除；或「设置 → 隐私和安全 → 网站设置 → 查看权限和网站数据」中搜索本站并删除。</p>
+
+    <h3>Firefox（桌面）</h3>
+    <p>地址栏输入 <code>about:preferences#privacy</code> → 「Cookie 和网站数据」→「管理数据」→ 搜索本站 → 移除。</p>
+
+    <h3>Safari（macOS）</h3>
+    <p>Safari →「设置」→「隐私」→「管理网站数据」→ 搜索本站 → 移除。</p>
+
+    <h3>手机浏览器</h3>
+    <p>在浏览器的「设置 → 网站设置 / 网站数据」中搜索本站并删除；若你把本应用「添加到主屏幕」作为 PWA 使用，<b>卸载该图标</b>同样会清除其数据。</p>
+
+    <h3>只想清除云备份</h3>
+    <p>云备份数据不在本机，清浏览器数据不会删掉它。请在备份中心「退出登录」后，通过第 15 节的渠道申请删除。</p>
+
+    <div class="doc-footer">
+        排班日历 · 隐私政策 v1.0 · 生效日期 2026-10-06<br>
+        <a href="../index.html">返回应用</a> · <a href="about.html">关于本应用</a>
+    </div>
+
+</div>
+</body>
+
+</html>

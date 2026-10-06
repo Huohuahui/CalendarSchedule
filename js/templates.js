@@ -125,6 +125,7 @@ function applyTemplate(templateId, year, month) {
     showToast(n > 0
         ? '📋 已套用「' + template.name + '」，更新 ' + n + ' 天（可 Ctrl+Z 撤销）'
         : 'ℹ️ 排班无变化');
+    if (n > 0 && typeof analyticsTrack === 'function') analyticsTrack('apply_template');
 }
 
 /**
@@ -138,6 +139,7 @@ function copyPrevMonth(year, month) {
     showToast(n > 0
         ? '📄 已复制上月排班，更新 ' + n + ' 天（可 Ctrl+Z 撤销）'
         : 'ℹ️ 上月无排班可复制');
+    if (n > 0 && typeof analyticsTrack === 'function') analyticsTrack('copy_prev_month');
 }
 
 /**

@@ -1,0 +1,9 @@
+# robots.txt · 排班日历
+# 本应用是纯静态站点，希望被搜索引擎收录。
+
+User-agent: *
+Allow: /
+Disallow:
+
+# 站点地图
+Sitemap: https://huohuahui.github.io/CalendarSchedule/sitemap.xml

@@ -500,6 +500,7 @@ function applyWeatherLocation(loc, toastText) {
     clearWeatherCache();     // 换地点必须清缓存，否则会显示上一个城市的天气
     fetchWeather(true);
     if (toastText) showToast(toastText);
+    if (typeof analyticsTrack === 'function') analyticsTrack('weather_location');
 }
 
 // ============================================================

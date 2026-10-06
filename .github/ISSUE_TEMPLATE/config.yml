@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 隐私政策（数据怎么存、怎么删）
+    url: https://huohuahui.github.io/CalendarSchedule/pages/privacy.html
+    about: 关于数据保存在哪里、第三方请求、如何撤回授权与彻底删除，请先看这里
+  - name: 关于本应用（功能一览 / 使用说明）
+    url: https://huohuahui.github.io/CalendarSchedule/pages/about.html
+    about: 使用前先看这里，可能已经有答案

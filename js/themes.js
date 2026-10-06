@@ -37,6 +37,7 @@ function renderThemeDots() {
         dot.style.background = t.color;
         dot.addEventListener('click', function () {
             setTheme(t.id);
+            if (typeof analyticsTrack === 'function') analyticsTrack('theme_set');
         });
         container.appendChild(dot);
     });

@@ -306,6 +306,7 @@ function applyPlanPreset(preset, scope, atYear, atMonth) {
     var scopeText = scope === 'month'
         ? '仅 ' + key.replace('-', '年') + '月'
         : (scope === 'from' ? '从 ' + key.replace('-', '年') + '月起' : key.replace('-', '年') + '月起');
+    if (typeof analyticsTrack === 'function') analyticsTrack('plan_apply');
     return {
         ok: true,
         msg: '🧭 已应用「' + rule.planName + '」· ' + scopeText +

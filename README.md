@@ -29,6 +29,8 @@
   - **三种搬运方式**：`导出文件`（JSON）、`复制备份文本`（粘贴到聊天/备忘即可跨设备搬运）、`粘贴文本导入`，另有 `选择文件导入`。
 - **数据导入 / 导出**：备份内容为排班 + 倒计时 + 待办 + 排班方案 + 主题（`version: 4`），旧版备份（纯 map / `version: 2~3`）仍可正常导入。
 - **☁️ 云备份（可选，默认关闭）**：开启后数据备份到**你自己的账号**下，换设备或清过缓存也能恢复。按账号隔离，别人看不到你的数据；恢复会用云端快照整包覆盖本机（有二次确认）。需**邮箱登录**，且仅在本应用的正式发布域名下可用 —— 本地打开或 GitHub Pages 预览环境会自动识别并提示，改用上面的本地备份。
+- **关于页与隐私政策**：页脚「ℹ️ 关于」进入独立文档页。关于页含功能一览、数据与隐私摘要、**使用统计**、反馈渠道与开源许可；隐私政策逐项列出本机保存的每个键、会向哪些第三方发请求、权限用途，以及**如何撤回授权与彻底删除数据**的具体步骤。
+- **使用统计（两级，分开控制）**：本地统计默认开启、只存本机（**仅记录事件名称与次数，不记录待办内容、排班日期、城市或坐标**）；匿名上报默认关闭，且需运营者配置上报地址后才可能生效——两条任一不满足就不发任何请求。
 - **PWA 离线**：通过 Service Worker 缓存资源，首次加载后可离线使用，支持「添加到主屏幕」。
 
 ## 🧩 技术栈
@@ -42,10 +44,18 @@
 
 ```
 排班计划表/
-├── index.html            # 入口页面（主目录仅保留此文件）
-├── sw.js                 # Service Worker（必须位于根目录）
+├── index.html            # 应用入口
+├── sw.js                 # Service Worker（浏览器规范要求必须在根目录）
+├── robots.txt            # 爬虫规则（爬虫规范要求必须在根目录）
+├── sitemap.xml           # 站点地图（同上）
+├── LICENSE               # MIT 开源许可
 ├── README.md             # 项目说明
 ├── .gitignore
+├── .github/
+│   └── ISSUE_TEMPLATE/   # 反馈模板（问题反馈 / 功能建议）
+├── pages/                # 独立文档页
+│   ├── about.html        # 关于（功能一览 / 使用统计 / 反馈渠道 / 许可）
+│   └── privacy.html      # 隐私政策
 ├── css/                  # 样式表
 │   ├── main.css          # 整体布局
 │   ├── calendar.css      # 日历网格与日期格（含弹窗基础样式）
@@ -53,10 +63,12 @@
 │   ├── progress.css      # 进度条
 │   ├── themes.css        # 主题配色变量
 │   ├── todo.css          # 待办事项弹窗 + 临近提醒悬浮卡样式
-│   └── backup.css        # 备份中心 + 云备份样式
+│   ├── backup.css        # 备份中心 + 云备份样式
+│   └── page.css          # 文档页（关于 / 隐私政策）样式
 ├── js/                   # 脚本（按依赖顺序 defer 加载）
 │   ├── lunar.min.js      # 农历算法库
 │   ├── utils.js          # 日期 / 通用工具
+│   ├── analytics.js      # 使用统计（本地计数 + 默认关闭的可选上报）
 │   ├── storage.js        # localStorage 读写（含异常保护）
 │   ├── history.js        # 撤销 / 重做栈
 │   ├── progress.js       # 月度目标进度
@@ -72,13 +84,38 @@
 │   ├── backup.js         # 备份中心（状态 / 提醒 / 导出导入 / 备份文本）
 │   ├── cloud-config.js   # 云服务公开配置（endpoint + publishableKey）
 │   ├── cloud-backup.js   # 云备份（邮箱登录 + 云端快照读写）
+│   ├── about.js          # 关于页交互（统计渲染 / 上报开关）
 │   └── main.js           # 入口与主流程
 ├── icons/                # PWA 图标（192 / 512 / apple-touch）
 ├── pwa/
 │   └── manifest.json     # Web App Manifest
-└── docs/
-    └── 代码审查报告.html  # 历史代码审查记录
+└── docs/                 # 项目文档
+    ├── 代码审查报告.html
+    └── 项目评估与上线移植报告.html
 ```
+
+> **关于根目录**：一般文件都进对应子目录，但有 4 个文件按规范必须放在根目录、无法移动：
+> `sw.js`（Service Worker 的作用范围只能覆盖自己所在目录）、`robots.txt` 与 `sitemap.xml`（爬虫只认根目录）、
+> `LICENSE`（开源许可的惯例位置）。其余内容全部按 `css/ js/ icons/ pwa/ pages/ docs/` 分目录。
+
+## 🔍 SEO 与收录
+
+- `index.html` 含 `description` / `canonical` / `robots` / Open Graph / Twitter Card，以及 `WebApplication` 结构化数据（JSON-LD）。
+- 根目录 `robots.txt` 允许全站抓取并指向站点地图；`sitemap.xml` 列出首页、关于页与隐私政策页。
+- 关于页、隐私政策页各有独立的标题与描述，避免重复内容。
+- **更换部署域名时需同步修改**：`index.html` 与两个文档页中的 `canonical` / `og:url` / `og:image`，
+  以及 `robots.txt`、`sitemap.xml` 里的绝对地址。
+
+## 📄 开源许可
+
+本项目以 **MIT License** 开源（见根目录 `LICENSE`）。第三方组件：
+
+- `js/lunar.min.js` 为 [lunar-javascript](https://github.com/6tail/lunar-javascript) v1.6.11，MIT 许可，版权归 6tail；
+- 天气与城市地理编码来自 [Open-Meteo](https://open-meteo.com/)，坐标反查城市名来自 [BigDataCloud](https://www.bigdatacloud.com/)，
+  二者均为外部服务，**不包含在本项目源码中**。
+
+> ⚠️ **上线前请替换占位符**：`LICENSE`、`pages/about.html`、`pages/privacy.html` 中有若干标注为「请填写」的地方
+> （运营者名称、联系邮箱）。隐私政策里的联系方式若留空，会明显削弱其合规效力。
 
 ## 🚀 快速开始
 
