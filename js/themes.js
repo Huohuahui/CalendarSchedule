@@ -63,7 +63,7 @@ function setTheme(theme) {
             dot.style.borderColor = '#FFFFFF';
             dot.style.transform = 'scale(1.15)';
         } else {
-            dot.style.borderColor = '#e2e8f0';
+            dot.style.borderColor = 'var(--border-solid)';
             dot.style.transform = 'scale(1)';
         }
     });

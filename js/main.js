@@ -572,7 +572,7 @@ function renderWeatherWithForecast(data) {
 
     // ========== 第一行：当前天气 ==========
     var currentRow = document.createElement('div');
-    currentRow.style.cssText = 'display:flex;align-items:center;gap:12px;padding-bottom:8px;border-bottom:1px solid #f1f4f9;';
+    currentRow.style.cssText = 'display:flex;align-items:center;gap:12px;padding-bottom:8px;border-bottom:1px solid var(--surface-2);';
 
     var iconSpan = document.createElement('span');
     iconSpan.textContent = weather.icon;
@@ -584,19 +584,19 @@ function renderWeatherWithForecast(data) {
 
     var tempSpan = document.createElement('div');
     tempSpan.textContent = Math.round(temp) + '°C';
-    tempSpan.style.cssText = 'font-size:1.3rem;font-weight:700;color:#0f172a;line-height:1.2;';
+    tempSpan.style.cssText = 'font-size:1.3rem;font-weight:700;color:var(--text-primary);line-height:1.2;';
     infoDiv.appendChild(tempSpan);
 
     var descSpan = document.createElement('div');
     descSpan.textContent = weather.text;
-    descSpan.style.cssText = 'font-size:0.65rem;color:#64748b;';
+    descSpan.style.cssText = 'font-size:0.65rem;color:var(--text-tertiary);';
     infoDiv.appendChild(descSpan);
 
     currentRow.appendChild(infoDiv);
 
     var windSpan = document.createElement('span');
     windSpan.textContent = '💨 ' + Math.round(windSpeed) + 'km/h';
-    windSpan.style.cssText = 'font-size:0.55rem;color:#94a3b8;background:#f1f4f9;padding:2px 10px;border-radius:12px;';
+    windSpan.style.cssText = 'font-size:0.55rem;color:var(--text-muted);background:var(--surface-2);padding:2px 10px;border-radius:12px;';
     currentRow.appendChild(windSpan);
 
     container.appendChild(currentRow);
@@ -604,7 +604,7 @@ function renderWeatherWithForecast(data) {
     // ========== 第二行：4个关键时段预报（8点、12点、18点、21点） ==========
     if (data.hourly && data.hourly.time && data.hourly.time.length > 0) {
         var hourlyTitle = document.createElement('div');
-        hourlyTitle.style.cssText = 'font-size:0.55rem;color:#94a3b8;padding-top:6px;padding-bottom:4px;';
+        hourlyTitle.style.cssText = 'font-size:0.55rem;color:var(--text-muted);padding-top:6px;padding-bottom:4px;';
         hourlyTitle.textContent = '🕐 今日关键时段';
         container.appendChild(hourlyTitle);
 
@@ -631,17 +631,17 @@ function renderWeatherWithForecast(data) {
                     var w = weatherMap[code] || { text: '--', icon: '🌤️' };
 
                     var dayDiv = document.createElement('div');
-                    dayDiv.style.cssText = 'flex:1;text-align:center;background:#f8fafc;border-radius:6px;padding:4px 0;';
+                    dayDiv.style.cssText = 'flex:1;text-align:center;background:var(--surface);border-radius:6px;padding:4px 0;';
 
                     if (targetHour === currentHour) {
-                        dayDiv.style.background = '#dbeafe';
-                        dayDiv.style.boxShadow = '0 0 0 1px #3b82f6';
+                        dayDiv.style.background = 'var(--primary-bg)';
+                        dayDiv.style.boxShadow = '0 0 0 1px var(--primary)';
                     }
 
                     dayDiv.innerHTML =
-                        '<div style="font-size:0.45rem;font-weight:600;color:#64748b;">' + labels[h] + '</div>' +
+                        '<div style="font-size:0.45rem;font-weight:600;color:var(--text-tertiary);">' + labels[h] + '</div>' +
                         '<div style="font-size:0.7rem;">' + w.icon + '</div>' +
-                        '<div style="font-size:0.5rem;font-weight:600;color:#0f172a;">' + tempVal + '°</div>';
+                        '<div style="font-size:0.5rem;font-weight:600;color:var(--text-primary);">' + tempVal + '°</div>';
 
                     hourlyRow.appendChild(dayDiv);
                     found = true;
@@ -651,10 +651,10 @@ function renderWeatherWithForecast(data) {
 
             if (!found) {
                 var emptyDiv = document.createElement('div');
-                emptyDiv.style.cssText = 'flex:1;text-align:center;background:#f8fafc;border-radius:6px;padding:4px 0;';
+                emptyDiv.style.cssText = 'flex:1;text-align:center;background:var(--surface);border-radius:6px;padding:4px 0;';
                 emptyDiv.innerHTML =
-                    '<div style="font-size:0.45rem;font-weight:600;color:#94a3b8;">' + labels[h] + '</div>' +
-                    '<div style="font-size:0.6rem;color:#94a3b8;">--</div>';
+                    '<div style="font-size:0.45rem;font-weight:600;color:var(--text-muted);">' + labels[h] + '</div>' +
+                    '<div style="font-size:0.6rem;color:var(--text-muted);">--</div>';
                 hourlyRow.appendChild(emptyDiv);
             }
         }
@@ -665,7 +665,7 @@ function renderWeatherWithForecast(data) {
     // ========== 第三行：6天预报（分两排，每排 3 天，尺寸一致） ==========
     if (data.daily && data.daily.time && data.daily.time.length > 0) {
         var forecastTitle = document.createElement('div');
-        forecastTitle.style.cssText = 'font-size:0.55rem;color:#94a3b8;padding-top:6px;padding-bottom:4px;border-top:1px solid #f1f4f9;margin-top:4px;';
+        forecastTitle.style.cssText = 'font-size:0.55rem;color:var(--text-muted);padding-top:6px;padding-bottom:4px;border-top:1px solid var(--surface-2);margin-top:4px;';
         forecastTitle.textContent = '📅 未来6天';
         container.appendChild(forecastTitle);
 
@@ -702,16 +702,16 @@ function renderWeatherWithForecast(data) {
                 var minT = Math.round(minTemps[k] || 0);
 
                 var fDayDiv = document.createElement('div');
-                fDayDiv.style.cssText = 'flex:1;text-align:center;background:#f8fafc;border-radius:8px;padding:6px 0;';
+                fDayDiv.style.cssText = 'flex:1;text-align:center;background:var(--surface);border-radius:8px;padding:6px 0;';
                 if (k === 0) {
-                    fDayDiv.style.background = '#dbeafe';
+                    fDayDiv.style.background = 'var(--primary-bg)';
                 }
 
                 fDayDiv.innerHTML =
-                    '<div style="font-size:0.5rem;font-weight:600;color:#64748b;">' + dayOfWeek + '</div>' +
+                    '<div style="font-size:0.5rem;font-weight:600;color:var(--text-tertiary);">' + dayOfWeek + '</div>' +
                     '<div style="font-size:1rem;">' + dw.icon + '</div>' +
-                    '<div style="font-size:0.6rem;font-weight:600;color:#0f172a;">' + maxT + '°</div>' +
-                    '<div style="font-size:0.5rem;color:#94a3b8;">' + minT + '°</div>';
+                    '<div style="font-size:0.6rem;font-weight:600;color:var(--text-primary);">' + maxT + '°</div>' +
+                    '<div style="font-size:0.5rem;color:var(--text-muted);">' + minT + '°</div>';
 
                 forecastRow.appendChild(fDayDiv);
             }
@@ -734,6 +734,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     fullUpdate();
     updateMultiSelectUI();
+
+    // 全站唯一的 Esc 浮层关闭监听（各模块通过 overlay.js 注册自己的关闭函数）
+    if (typeof initOverlayEsc === 'function') initOverlayEsc();
 
     var total = Object.keys(statusMap).length;
     showToast('💾 已加载 ' + total + ' 个标记');
@@ -810,15 +813,12 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // 普通模式：循环切换状态（普通→加班→休息→普通）
-        var next = getStatus(y, m, d);
-        next = next === 'normal' ? 'overtime' : next === 'overtime' ? 'rest' : 'normal';
-        setStatus(y, m, d, next);
-        renderCalendar(currentYear, currentMonth);
-        updateProgressBars(currentYear, currentMonth);
-        var names = { overtime: '🌙 加班', rest: '☀️ 休息', normal: '普通' };
-        showToast(y + '/' + m + '/' + d + ' → ' + names[next] + ' ✅');
+        // 普通模式：循环切换状态（与键盘 Enter/空格 共用同一份逻辑）
+        cycleDayStatus(y, m, d);
     });
+
+    // 日历键盘操作：方向键移焦点、Home/End、Enter/空格 切换状态
+    initCalendarKeyboard();
 
     setupDragDrop(markOvertimeBtn, markRestBtn, function () {
         fullUpdate();
@@ -854,6 +854,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 初始化倒计时功能
     initCountdown();
+
+    // 初始化排班模板（注册模板弹窗的 Esc 关闭）
+    if (typeof initTemplates === 'function') initTemplates();
 
     // 初始化待办事项（加载数据 + 刷新侧栏卡片徽标）
     if (typeof initTodo === 'function') initTodo();

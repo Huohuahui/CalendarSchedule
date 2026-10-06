@@ -107,9 +107,6 @@ function getExtraTarget(year, month) {
     return rule ? rule.extra : DEFAULT_EXTRA_TARGET;
 }
 
-/** 兼容旧引用（历史代码里的 EXTRA_TARGET 常量） */
-const EXTRA_TARGET = DEFAULT_EXTRA_TARGET;
-
 /**
  * 计算额外加班天数
  * 

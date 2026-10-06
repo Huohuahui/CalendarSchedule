@@ -143,6 +143,18 @@ function copyPrevMonth(year, month) {
 }
 
 /**
+ * 初始化（由 main.js 调用）：把模板弹窗的 Esc 关闭交给统一管理器
+ */
+function initTemplates() {
+    registerOverlayCloser(20, function () {
+        var el = document.getElementById('templateModal');
+        if (!el) return false;
+        el.remove();
+        return true;
+    });
+}
+
+/**
  * 打开排班模板选择弹窗
  */
 function showTemplateModal() {

@@ -695,8 +695,11 @@ function initPlan() {
     var entry = document.getElementById('planEntry');
     if (entry) entry.addEventListener('click', showPlanModal);
 
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closePlanModal();
+    // Esc 由 overlay.js 统一处理（优先级 10）
+    registerOverlayCloser(10, function () {
+        if (!document.getElementById('planModal')) return false;
+        closePlanModal();
+        return true;
     });
 
     refreshPlanUI();

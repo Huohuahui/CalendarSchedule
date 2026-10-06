@@ -190,7 +190,113 @@ function isWeekend(year, month, day) {
     return d.getDay() === 0 || d.getDay() === 6;
 }
 
-function renderCalendar(year, month, onStatusChange) {
+// ---------- 键盘可达性 ----------
+/**
+ * 键盘焦点所在日；null 表示用「今天（若在当前月）或 1 号」
+ * 用 roving tabindex：全月只有一个格子 tabindex=0，避免 Tab 要按 31 次
+ */
+var calendarFocusDay = null;
+
+/**
+ * 按状态循环切换某天：普通 → 加班 → 休息 → 普通
+ * 鼠标点击与键盘 Enter/空格 共用同一份逻辑，避免两处行为漂移
+ */
+function cycleDayStatus(y, m, d) {
+    var next = getStatus(y, m, d);
+    next = next === 'normal' ? 'overtime' : next === 'overtime' ? 'rest' : 'normal';
+    setStatus(y, m, d, next);
+    renderCalendar(currentYear, currentMonth);
+    updateProgressBars(currentYear, currentMonth);
+    var names = { overtime: '🌙 加班', rest: '☀️ 休息', normal: '普通' };
+    showToast(y + '/' + m + '/' + d + ' → ' + names[next] + ' ✅');
+}
+
+function calendarDefaultFocusDay(year, month) {
+    var t = getToday();
+    if (t.year === year && t.month === month) return t.day;
+    return 1;
+}
+
+/** 当前月份下应当持有 tabindex=0 的那一天 */
+function calendarFocusDayFor(year, month) {
+    var days = getDaysInMonth(year, month);
+    var d = calendarFocusDay;
+    if (!d || d < 1 || d > days) return calendarDefaultFocusDay(year, month);
+    return d;
+}
+
+/** 在同一月内移动焦点：只改 tabindex 与 DOM 焦点，不重绘 */
+function focusCalendarDay(y, m, d) {
+    var cells = document.querySelectorAll('#daysGrid .day-cell:not(.empty-cell)');
+    var target = null;
+    for (var i = 0; i < cells.length; i++) {
+        if (cells[i].dataset.day === String(d)) { target = cells[i]; break; }
+    }
+    if (!target) return false;
+    for (var j = 0; j < cells.length; j++) cells[j].tabIndex = -1;
+    target.tabIndex = 0;
+    calendarFocusDay = d;
+    target.focus();
+    return true;
+}
+
+/** 按天数偏移移动焦点；跨月时先切月，重绘后再落焦点 */
+function calendarMoveFocus(y, m, d, delta) {
+    var t = new Date(y, m - 1, d + delta);
+    var ty = t.getFullYear(), tm = t.getMonth() + 1, td = t.getDate();
+    if (ty === currentYear && tm === currentMonth) {
+        focusCalendarDay(ty, tm, td);
+        return;
+    }
+    calendarFocusDay = td;
+    goToYearMonth(ty, tm);
+    setTimeout(function () { focusCalendarDay(ty, tm, td); }, 0);
+}
+
+/**
+ * 安装日历键盘操作（由 main.js 初始化时调用一次）
+ * ← → 前后一天；↑ ↓ 前后一周；Home/End 月首/月末；Enter/空格 切换状态
+ */
+function initCalendarKeyboard() {
+    var grid = document.getElementById('daysGrid');
+    if (!grid || grid.dataset.kbBound === '1') return;
+    grid.dataset.kbBound = '1';
+
+    grid.addEventListener('keydown', function (e) {
+        var cell = e.target && e.target.closest ? e.target.closest('.day-cell') : null;
+        if (!cell || cell.classList.contains('empty-cell')) return;
+
+        var y = parseInt(cell.dataset.year, 10);
+        var m = parseInt(cell.dataset.month, 10);
+        var d = parseInt(cell.dataset.day, 10);
+        if (!y || !m || !d) return;
+
+        var handled = true;
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            cycleDayStatus(y, m, d);
+            // 状态切换会整块重绘，重绘后把焦点放回同一天
+            calendarFocusDay = d;
+            setTimeout(function () { focusCalendarDay(y, m, d); }, 0);
+        } else if (e.key === 'ArrowLeft') {
+            calendarMoveFocus(y, m, d, -1);
+        } else if (e.key === 'ArrowRight') {
+            calendarMoveFocus(y, m, d, 1);
+        } else if (e.key === 'ArrowUp') {
+            calendarMoveFocus(y, m, d, -7);
+        } else if (e.key === 'ArrowDown') {
+            calendarMoveFocus(y, m, d, 7);
+        } else if (e.key === 'Home') {
+            calendarMoveFocus(y, m, d, -(d - 1));
+        } else if (e.key === 'End') {
+            calendarMoveFocus(y, m, d, getDaysInMonth(y, m) - d);
+        } else {
+            handled = false;
+        }
+        if (handled) e.preventDefault();
+    });
+}
+
+function renderCalendar(year, month) {
     // ===== 月份名映射 =====
     const MONTH_NAMES = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
 
@@ -227,12 +333,15 @@ function renderCalendar(year, month, onStatusChange) {
 
     const today = getToday();
     const grid = document.getElementById('daysGrid');
+    grid.setAttribute('role', 'grid');
+    grid.setAttribute('aria-label', year + '年' + month + '月 排班日历');
+    const focusDay = calendarFocusDayFor(year, month);
     grid.innerHTML = '';
 
     // 算法库未就绪（离线或加载失败）时触发懒加载，加载完重渲染补齐农历
     if (!window.Solar) {
         ensureLunarLib(function () {
-            renderCalendar(year, month, onStatusChange);
+            renderCalendar(year, month);
         });
     }
 
@@ -243,6 +352,7 @@ function renderCalendar(year, month, onStatusChange) {
 
         if (isEmpty) {
             div.classList.add('empty-cell');
+            div.setAttribute('aria-hidden', 'true');
             grid.appendChild(div);
             continue;
         }
@@ -265,7 +375,7 @@ function renderCalendar(year, month, onStatusChange) {
         const num = document.createElement('span');
         num.className = 'date-number';
         num.textContent = d;
-        const dateColor = isStatusActive ? '#ffffff' : '#0f172a';
+        const dateColor = isStatusActive ? 'var(--on-accent)' : 'var(--text-primary)';
         num.style.cssText = 'display:block;font-size:1.1rem;font-weight:700;color:' + dateColor + ';line-height:1.2;';
         div.appendChild(num);
 
@@ -274,7 +384,7 @@ function renderCalendar(year, month, onStatusChange) {
             const span = document.createElement('span');
             span.className = 'lunar-date';
             span.textContent = info.display;
-            const color = isStatusActive ? '#ffffff' : '#475569';
+            const color = isStatusActive ? 'var(--on-accent)' : 'var(--text-secondary)';
             span.style.cssText = 'display:block;font-size:0.7rem;font-weight:600;color:' + color + ';line-height:1.3;margin-top:2px;letter-spacing:0.3px;';
             div.appendChild(span);
         }
@@ -283,11 +393,20 @@ function renderCalendar(year, month, onStatusChange) {
             const span = document.createElement('span');
             span.className = 'festival-date';
             span.textContent = info.festival;
-            const color = isStatusActive ? '#fca5a5' : '#dc2626';
+            const color = isStatusActive ? 'var(--overtime-light)' : 'var(--overtime)';
             const bg = isStatusActive ? 'rgba(255,255,255,0.15)' : 'rgba(220,38,38,0.10)';
             span.style.cssText = 'display:block;font-size:0.5rem;font-weight:700;color:' + color + ';background:' + bg + ';padding:0 6px;border-radius:10px;line-height:1.5;margin-top:2px;';
             div.appendChild(span);
         }
+
+        // ---- 键盘可达性：roving tabindex + 可读标签 ----
+        div.setAttribute('role', 'gridcell');
+        div.tabIndex = (d === focusDay) ? 0 : -1;
+        const statusName = status === 'overtime' ? '加班' : status === 'rest' ? '休息' : '未标记';
+        let ariaText = y + '年' + m + '月' + d + '日，' + statusName;
+        if (info.festival) ariaText += '，' + info.festival;
+        else if (info.display) ariaText += '，' + info.display;
+        div.setAttribute('aria-label', ariaText);
 
         const label = document.createElement('span');
         label.className = 'status-label';

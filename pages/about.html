@@ -92,7 +92,7 @@
         <a href="privacy.html">《隐私政策》</a>。</p>
 
     <!-- ========== 使用统计 ========== -->
-    <h2 id="stats"><span class="n">4</span>使用统计</h2>
+    <h2 id="stats"><span class="n">4</span>使用统计与本地诊断</h2>
 
     <p>为了知道功能有没有人在用、好不好用，本应用做了一个很小的统计。它<b>只记录事件名称和次数</b>，不记录任何内容：</p>
 
@@ -122,6 +122,23 @@
 
     <div style="margin-top:14px">
         <button type="button" class="btn ghost" id="statsClearBtn">清除本机统计</button>
+    </div>
+
+    <h3 id="errors">最近错误（只在本机）</h3>
+
+    <p>页面出现 JS 报错时，会在这里记下最近 10 条，方便你在反馈问题时提供线索。
+        <b>这些记录只存在你的浏览器里，不会自动上传</b>，也不包含你的排班、待办或倒计时内容。</p>
+
+    <div class="card">
+        <div id="errorMeta" class="stat-meta"></div>
+        <div id="errorBody" class="stat-body"></div>
+    </div>
+
+    <div style="margin-top:14px">
+        <button type="button" class="btn ghost" id="errorCopyBtn">复制错误报告</button>
+        <button type="button" class="btn ghost" id="errorClearBtn" style="margin-left:8px">清除记录</button>
+        <div class="err-note" id="errorCopyNote">已复制到剪贴板，粘贴到 GitHub Issue 即可。</div>
+        <div id="errorFallback"></div>
     </div>
 
     <!-- ========== 反馈与贡献 ========== -->
@@ -160,7 +177,7 @@
             </tr>
             <tr>
                 <td>隐私相关请求（删除云端数据 / 注销账号）</td>
-                <td><span class="fill-me">【请填写：联系邮箱】</span></td>
+                <td><a href="https://github.com/Huohuahui/CalendarSchedule/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a>（Issues 是公开的，请勿粘贴敏感信息）</td>
                 <td>—</td>
             </tr>
             </tbody>
@@ -179,7 +196,7 @@
 
     <div class="license-text">MIT License
 
-Copyright (c) 2026 <span class="fill-me">【请填写：你的名字或昵称】</span>
+Copyright (c) 2026 Huohuahui
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -242,6 +259,7 @@ SOFTWARE.</div>
 
 </div>
 
+<script src="../js/error-log.js"></script>
 <script src="../js/analytics.js"></script>
 <script src="../js/about.js"></script>
 </body>

@@ -71,8 +71,8 @@
         <table>
             <tbody>
             <tr><th style="width:130px">应用名称</th><td>排班日历（加班 / 休息标记日历）</td></tr>
-            <tr><th>运营者</th><td><span class="fill-me">【请填写：你的名字或昵称】</span></td></tr>
-            <tr><th>联系方式</th><td><span class="fill-me">【请填写：联系邮箱】</span>（或通过下方"反馈渠道"联系）</td></tr>
+            <tr><th>运营者</th><td>Huohuahui（个人开发者，网名）</td></tr>
+            <tr><th>联系方式</th><td><a href="https://github.com/Huohuahui/CalendarSchedule/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a>（本应用不设专用邮箱，所有联系均通过该渠道受理）</td></tr>
             <tr><th>应用性质</th><td>个人开发的免费开源工具，<b>无商业运营、无广告、不作任何商业化数据利用</b></td></tr>
             <tr><th>是否有服务器</th><td>默认<b>没有</b>。本应用是纯静态网页，默认不向任何自有服务器发送数据</td></tr>
             </tbody>
@@ -185,6 +185,11 @@
                 <td><code>analyticsOptin</code></td>
                 <td>是否同意匿名使用统计上报</td>
                 <td><span class="tag no">否</span></td>
+            </tr>
+            <tr>
+                <td><code>errorLog</code></td>
+                <td>页面 JS 报错的最近 10 条记录（报错信息、位置、堆栈，均做长度截断）与发生次数</td>
+                <td><span class="tag no">否</span> <b>只记录报错本身，不含你的排班、待办或倒计时内容；不自动上传</b></td>
             </tr>
             </tbody>
         </table>
@@ -366,6 +371,18 @@
 
     <p>你可以在<a href="about.html#stats">关于页</a>查看当前的本地统计，并一键清除。</p>
 
+    <h3>本地错误日志</h3>
+
+    <p>除了使用统计，还有一个<b>本地错误日志</b>（存储键 <code>errorLog</code>）：页面出现 JS 报错时，会记下报错信息、出错位置与堆栈（均做长度截断），最多保留最近 10 条，便于你在反馈问题时提供线索。</p>
+
+    <ul>
+        <li>同样<b>只保存在本机、不会自动上传</b>。</li>
+        <li><b>不记录你的排班、待办或倒计时内容</b>——只记录报错本身。</li>
+        <li>在<a href="about.html#errors">关于页</a>可以查看、一键复制成错误报告、或清除记录。</li>
+        <li>复制出的报告会带上<b>一行浏览器标识</b>，用于定位兼容性问题；该行内容在粘贴前你可以自行删除。</li>
+        <li>是否需要把它贴到公开的 Issue 里，<b>完全由你决定</b>；不复制、不粘贴，它就永远不会离开你的设备。</li>
+    </ul>
+
     <!-- ========== 9 ========== -->
     <h2 id="s9"><span class="n">9</span>数据安全</h2>
 
@@ -481,7 +498,8 @@
             <tbody>
             <tr><th style="width:130px">问题反馈 / 功能建议</th><td><a href="https://github.com/Huohuahui/CalendarSchedule/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a>（普通反馈走这里，只需账号、无需写代码）</td></tr>
             <tr><th>代码贡献</th><td><a href="https://github.com/Huohuahui/CalendarSchedule" target="_blank" rel="noopener noreferrer">GitHub 仓库</a> → Fork → 提交 Pull Request（这是给"改代码"的贡献者用的渠道，不是普通反馈渠道）</td></tr>
-            <tr><th>隐私相关请求</th><td><span class="fill-me">【请填写：联系邮箱】</span>（用于数据删除、账号注销等）</td></tr>
+            <tr><th>隐私相关请求</th><td>同样通过上述 <a href="https://github.com/Huohuahui/CalendarSchedule/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a> 提出（用于云端数据删除、账号注销等）。
+                <b>请注意 Issues 是公开的，请勿在其中粘贴完整备份、邮箱或其他敏感信息</b>，只说明诉求即可。</td></tr>
             <tr><th>响应时间</th><td>个人项目，通常在数日内回复，无法承诺固定时限</td></tr>
             </tbody>
         </table>

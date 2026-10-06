@@ -20,7 +20,7 @@ var MAX_NAME_LENGTH = 6;
 // ---------- 分类数据 ----------
 var CATEGORY_DATA = {
     '工作': {
-        color: '#3b82f6',
+        color: 'var(--primary)',
         subCategories: [
             { id: 'project', name: '项目截止', icon: '📋' },
             { id: 'report', name: '汇报/周报', icon: '📊' },
@@ -30,7 +30,7 @@ var CATEGORY_DATA = {
         ]
     },
     '个人': {
-        color: '#16a34a',
+        color: 'var(--rest)',
         subCategories: [
             { id: 'salary', name: '发工资', icon: '💰' },
             { id: 'birthday', name: '生日/纪念日', icon: '🎂' },
@@ -125,7 +125,7 @@ function addCountdownItem(name, targetDate, category, subCategory, pinned) {
     }
 
     list.push({
-        id: Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+        id: Date.now() + '_' + Math.random().toString(36).slice(2, 8),
         name: name,
         targetDate: targetDate,
         category: category,
@@ -171,7 +171,7 @@ function updateCountdownItems() {
 
 function getCategoryColor(category) {
     var info = CATEGORY_DATA[category];
-    return info ? info.color : '#64748b';
+    return info ? info.color : 'var(--text-tertiary)';
 }
 
 function getCategoryLabel(category) {
@@ -234,14 +234,14 @@ function renderCountdownList() {
             displayName = displayName.substring(0, MAX_NAME_LENGTH) + '…';
         }
         nameSpan.textContent = displayName;
-        nameSpan.style.cssText = 'font-size:0.7rem;font-weight:600;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;';
+        nameSpan.style.cssText = 'font-size:0.7rem;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;';
         nameSpan.title = item.name;
         topRow.appendChild(nameSpan);
 
         if (isPinned) {
             var pinIcon = document.createElement('span');
             pinIcon.textContent = '📌';
-            pinIcon.style.cssText = 'font-size:0.55rem;color:#f59e0b;';
+            pinIcon.style.cssText = 'font-size:0.55rem;color:var(--warn);';
             topRow.appendChild(pinIcon);
         }
 
@@ -257,7 +257,7 @@ function renderCountdownList() {
 
         var dateSpan = document.createElement('span');
         dateSpan.textContent = '📅 ' + item.targetDate;
-        dateSpan.style.cssText = 'font-size:0.5rem;color:#94a3b8;';
+        dateSpan.style.cssText = 'font-size:0.5rem;color:var(--text-muted);';
         bottomRow.appendChild(dateSpan);
         leftDiv.appendChild(bottomRow);
 
@@ -270,16 +270,16 @@ function renderCountdownList() {
 
         if (item.isToday) {
             badge.textContent = '🎉 今天';
-            badge.style.color = '#16a34a';
-            badge.style.background = '#dcfce7';
+            badge.style.color = 'var(--rest)';
+            badge.style.background = 'var(--rest-bg)';
         } else if (item.isPassed) {
             badge.textContent = '✅ 已过';
-            badge.style.color = '#64748b';
-            badge.style.background = '#f1f4f9';
+            badge.style.color = 'var(--text-tertiary)';
+            badge.style.background = 'var(--surface-2)';
         } else {
             var d = item.daysLeft;
-            var color = d <= 3 ? '#dc2626' : d <= 7 ? '#f59e0b' : '#3b82f6';
-            var bg = d <= 3 ? '#fee2e2' : d <= 7 ? '#fef3c7' : '#dbeafe';
+            var color = d <= 3 ? 'var(--overtime)' : d <= 7 ? 'var(--warn)' : 'var(--primary)';
+            var bg = d <= 3 ? 'var(--overtime-bg)' : d <= 7 ? 'var(--warn-bg)' : 'var(--primary-bg)';
             badge.textContent = '⏳ ' + d + '天';
             badge.style.color = color;
             badge.style.background = bg;
@@ -628,6 +628,20 @@ function showEditCountdownModal(item) {
 
 function initCountdown() {
     renderCountdownList();
+
+    // Esc 由 overlay.js 统一处理（操作菜单在编辑弹窗之上，优先级略高）
+    registerOverlayCloser(25, function () {
+        var el = document.getElementById('actionModal');
+        if (!el) return false;
+        el.remove();
+        return true;
+    });
+    registerOverlayCloser(20, function () {
+        var el = document.getElementById('countdownModal');
+        if (!el) return false;
+        el.remove();
+        return true;
+    });
 
     var addBtn = document.getElementById('addCountdownBtn');
     if (addBtn) {

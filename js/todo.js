@@ -84,16 +84,17 @@ function renderTodoBadge() {
 function initTodo() {
     loadTodos();
     renderTodoBadge();
-    document.addEventListener('keydown', function (e) {
-        if (e.key !== 'Escape') return;
+    // Esc 由 overlay.js 统一处理（优先级 20）
+    registerOverlayCloser(20, function () {
         var overlay = document.getElementById('todoModal');
-        if (!overlay) return;
+        if (!overlay) return false;
         var form = document.getElementById('todoForm');
         if (form && form.style.display !== 'none') {
             renderTodoList();   // 表单视图 → 先返回列表
-            return;
+            return true;
         }
         overlay.remove();
+        return true;
     });
 }
 

@@ -545,10 +545,16 @@ function initBackup() {
     var btn = document.getElementById('backupBtn');
     if (btn) btn.addEventListener('click', openBackupModal);
 
-    document.addEventListener('keydown', function (e) {
-        if (e.key !== 'Escape') return;
-        if (document.getElementById('pasteBox')) { closePasteBox(); return; }
+    // Esc 由 overlay.js 统一处理（粘贴框在备份中心之上，优先级更高）
+    registerOverlayCloser(45, function () {
+        if (!document.getElementById('pasteBox')) return false;
+        closePasteBox();
+        return true;
+    });
+    registerOverlayCloser(40, function () {
+        if (!document.getElementById('backupModal')) return false;
         closeBackupModal();
+        return true;
     });
 
     updateBackupBadge();

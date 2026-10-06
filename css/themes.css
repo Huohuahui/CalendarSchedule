@@ -27,8 +27,19 @@
     --bg-sidebar: rgba(255, 255, 255, 0.85);
     --text-primary: #0f172a;
     --text-secondary: #475569;
+    --text-tertiary: #64748b;
     --text-muted: #94a3b8;
     --border-color: rgba(226, 232, 240, 0.6);
+
+    /* 中性色（动态生成的 UI 用，避免把色值写死在 JS 里） */
+    --surface: #f8fafc;
+    --surface-2: #f1f4f9;
+    --border-solid: #e2e8f0;
+    --on-accent: #ffffff;
+
+    /* 语义色：状态提示（不随主题变化） */
+    --warn: #f59e0b;
+    --warn-bg: #fef3c7;
 }
 
 /* ---------- 红色主题 ---------- */

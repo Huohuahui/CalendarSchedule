@@ -248,16 +248,6 @@ td code { font-size: 0.8em; }
 .tag.no { background: #f1f5f9; color: var(--ink3); }
 .tag.need { background: var(--warn-soft); color: var(--warn); }
 
-/* ---------- 占位符提示（需作者填写） ---------- */
-.fill-me {
-    background: #fef3c7;
-    border: 1px dashed #d97706;
-    border-radius: 6px;
-    padding: 0 6px;
-    color: #92400e;
-    font-weight: 700;
-}
-
 /* ---------- 按钮 ---------- */
 .btn {
     display: inline-block;
@@ -442,4 +432,75 @@ td code { font-size: 0.8em; }
 @media (max-width: 480px) {
     .stat-bar-row { grid-template-columns: 76px 1fr 46px; font-size: 0.75rem; }
 }
+
+/* ============================================================
+   关于页 · 最近错误（本地）
+   ============================================================ */
+
+.err-item {
+    border-top: 1px dashed var(--line);
+    padding: 10px 0;
+    font-size: 0.8rem;
+}
+
+.err-item:first-child { border-top: none; padding-top: 0; }
+
+.err-item .err-msg {
+    color: var(--ink);
+    font-weight: 600;
+    word-break: break-word;
+    line-height: 1.6;
+}
+
+.err-item .err-meta {
+    color: var(--ink3);
+    font-size: 0.74rem;
+    margin-top: 3px;
+    word-break: break-all;
+}
+
+.err-item .err-stack {
+    color: var(--ink3);
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.72rem;
+    line-height: 1.6;
+    margin-top: 5px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 110px;
+    overflow: auto;
+}
+
+.err-empty {
+    color: var(--ink3);
+    font-size: 0.84rem;
+    padding: 4px 0;
+}
+
+.err-note {
+    font-size: 0.78rem;
+    color: var(--ok);
+    margin-top: 10px;
+    display: none;
+}
+
+.err-note.show { display: block; }
+
+.err-textarea {
+    width: 100%;
+    min-height: 130px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.72rem;
+    line-height: 1.6;
+    color: var(--ink2);
+    resize: vertical;
+}
+
 

@@ -706,16 +706,19 @@ function initWeatherLocation() {
     var locBtn = document.getElementById('weatherLocBtn');
     if (locBtn) locBtn.addEventListener('click', openCityPicker);
 
-    document.addEventListener('keydown', function (e) {
-        if (e.key !== 'Escape') return;
-        // 说明卡开着时，Esc = 不做定位，直接用默认城市（避免卡在「定位中…」）
-        if (document.getElementById('geoIntro')) {
-            closeGeoIntro();
-            useDefaultLocation();
-            showToast('📍 已使用默认城市，点城市名可切换');
-            return;
-        }
+    // Esc 由 overlay.js 统一处理
+    // 说明卡优先级更高：开着时 Esc = 不做定位，直接用默认城市（避免卡在「定位中…」）
+    registerOverlayCloser(50, function () {
+        if (!document.getElementById('geoIntro')) return false;
+        closeGeoIntro();
+        useDefaultLocation();
+        showToast('📍 已使用默认城市，点城市名可切换');
+        return true;
+    });
+    registerOverlayCloser(30, function () {
+        if (!document.getElementById('cityPicker')) return false;
         closeCityPicker();
+        return true;
     });
 
     var saved = loadWeatherLocation();
