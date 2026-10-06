@@ -7,6 +7,9 @@
 .calendar-wrapper {
     flex: 1;
     min-width: 0;
+    /* 纵向 flex：好让页脚信息用 margin-top:auto 贴到底部，填掉左/右侧栏更高时留下的空白 */
+    display: flex;
+    flex-direction: column;
     background: rgba(255, 255, 255, 0.88);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -519,6 +522,40 @@
 /* 「关于」是链接元素，去掉下划线与浏览器默认链接色 */
 .footer-hints a.footer-link {
     text-decoration: none;
+}
+
+/* ---------- 应用页脚信息（版本 / 许可 / 文档入口） ---------- */
+/* margin-top:auto 让它贴到日历盒子最底部，填掉两侧栏更高时留下的空白 */
+.app-footer {
+    margin-top: auto;
+    padding-top: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+}
+.app-footer .app-footer-links {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+.app-footer .hint-sep {
+    opacity: 0.35;
+}
+.app-footer a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: 0.2s;
+}
+.app-footer a:hover {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 /* ---------- 排班模板弹窗 ---------- */

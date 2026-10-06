@@ -123,6 +123,19 @@ async function runAll(port) {
   try { ld = JSON.parse(ldEl.textContent); } catch (e) { }
   ok('JSON-LD 可解析且为 WebApplication', !!ld && ld['@type'] === 'WebApplication');
   ok('页脚有「关于」入口', !!d.getElementById('aboutLink'));
+  ok('页脚有「隐私政策」入口', !!d.getElementById('privacyLink'));
+  const appFooter = d.querySelector('.app-footer');
+  ok('页脚信息含版本与许可',
+    !!appFooter && appFooter.textContent.indexOf('MIT 开源许可') >= 0,
+    appFooter ? appFooter.textContent : '');
+  ok('页脚信息在日历盒子内（用于填掉下方留白）',
+    !!d.querySelector('.calendar-wrapper > .app-footer'));
+  ok('日历盒子是纵向 flex（页脚才能贴到底部）',
+    /\.calendar-wrapper\s*\{[^}]*flex-direction:\s*column/.test(
+      fs.readFileSync(path.join(ROOT, 'css/calendar.css'), 'utf8')));
+  ok('操作栏已回到 3 项（关于移入页脚信息）',
+    d.querySelectorAll('.footer-hints .footer-link').length === 3,
+    'got ' + d.querySelectorAll('.footer-hints .footer-link').length);
 
   // ============================================================
   console.log('\n=== B. 排班核心 ===');
