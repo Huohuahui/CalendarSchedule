@@ -167,6 +167,11 @@ function removeTodoRemindCard(card) {
     if (!card || !card.parentNode) return;
     if (card.classList.contains('out')) return;
     card.classList.add('out');
+    // 清掉自动关闭定时器：否则卡片已被移除，定时器稍后仍会回调一次
+    if (card._autoTimer) {
+        clearTimeout(card._autoTimer);
+        card._autoTimer = null;
+    }
     setTimeout(function () {
         if (card.parentNode) card.parentNode.removeChild(card);
         var wrap = document.getElementById('todoRemindStack');
@@ -303,6 +308,10 @@ function showTodoReminderCard(items, source) {
 // ============================================================
 
 function initTodoReminder() {
+    // 幂等：重复调用不应重复注册监听与定时器
+    if (document.body.dataset.todoRemindBound === '1') return;
+    document.body.dataset.todoRemindBound = '1';
+
     // 1) 刷新 / 首次加载：稍延迟，避开首屏渲染高峰
     setTimeout(function () { checkTodoReminders('load'); }, 900);
 

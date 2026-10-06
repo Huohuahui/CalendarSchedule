@@ -291,7 +291,11 @@ function useDefaultLocation() {
  * @param {boolean} silent 静默模式（已授权时后台更新坐标，失败不打扰用户）
  * @param {Function} [done] 回调 (ok, loc)
  */
+/** 定位请求序号：用户在定位过程中手动选了城市时，迟到的定位结果必须丢弃 */
+var geoRequestSeq = 0;
+
 function requestGeolocation(silent, done) {
+    var mySeq = ++geoRequestSeq;
     var finished = false;
     function finish(ok, loc) {
         if (finished) return;
@@ -322,6 +326,8 @@ function requestGeolocation(silent, done) {
         var lat = Math.round(pos.coords.latitude * 100) / 100;
         var lon = Math.round(pos.coords.longitude * 100) / 100;
         var apply = function (name) {
+            // 期间用户已手动选过城市 → 放弃这次定位结果，不要覆盖用户的选择
+            if (mySeq !== geoRequestSeq) { finish(false); return; }
             var loc = { mode: 'auto', name: name, latitude: lat, longitude: lon, updatedAt: Date.now() };
             var changed = !isSameLocation(getWeatherLocation(), loc);
             saveWeatherLocation(loc);
@@ -494,6 +500,7 @@ function showGeoIntro(permState) {
 // ============================================================
 
 function applyWeatherLocation(loc, toastText) {
+    geoRequestSeq++;         // 作废在途的定位请求，避免迟到的结果覆盖用户的手动选择
     loc.updatedAt = Date.now();
     saveWeatherLocation(loc);
     renderWeatherLocName();
@@ -522,6 +529,8 @@ function cityMsgRow(text) {
 function buildCityRow(c) {
     var row = document.createElement('div');
     row.className = 'city-row';
+    row.setAttribute('aria-label', '选择城市：' + c.name);
+    makeFocusableButton(row);
 
     var main = document.createElement('div');
     main.style.flex = '1';
@@ -645,8 +654,10 @@ function openCityPicker() {
         resultBox.appendChild(s);
     }
 
+    var searchSeq = 0;
     function doSearch(q) {
         var key = (q || '').trim();
+        var mySeq = ++searchSeq;
         resultBox.innerHTML = '';
         if (!key) return;
 
@@ -662,6 +673,7 @@ function openCityPicker() {
         resultBox.appendChild(loading);
 
         searchCities(key).then(function (list) {
+            if (mySeq !== searchSeq) return;          // 已有更新的搜索，丢弃本次结果
             if (loading.parentNode) loading.remove();
 
             var localNames = {};
@@ -677,6 +689,7 @@ function openCityPicker() {
             appendSub('搜索结果');
             for (var k = 0; k < rest.length; k++) resultBox.appendChild(buildCityRow(rest[k]));
         }, function () {
+            if (mySeq !== searchSeq) return;
             if (loading.parentNode) loading.remove();
             if (!local.length) {
                 resultBox.appendChild(cityMsgRow('⚠️ 联网搜索失败，可从下方常用城市中选择'));

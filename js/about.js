@@ -190,15 +190,18 @@ function aboutCopyReport() {
     if (host) host.innerHTML = '';
     if (note) note.className = 'err-note';
 
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function () {
-            if (note) note.className = 'err-note show';
-        }, function () {
-            aboutShowErrorText(text);
-        });
-    } else {
+    // 统一走 utils.js 的复制实现（含 execCommand 兜底，比只用 clipboard API 更稳）
+    if (typeof copyTextToClipboard !== 'function') {
         aboutShowErrorText(text);
+        return;
     }
+    copyTextToClipboard(text).then(function (ok) {
+        if (ok) {
+            if (note) note.className = 'err-note show';
+        } else {
+            aboutShowErrorText(text);   // 自动复制不可用 → 让用户手动复制
+        }
+    });
 }
 
 // ============================================================

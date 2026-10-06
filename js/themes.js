@@ -35,6 +35,8 @@ function renderThemeDots() {
         dot.dataset.theme = t.id;
         dot.title = t.title;
         dot.style.background = t.color;
+        dot.setAttribute('aria-label', '主题：' + t.title);
+        makeFocusableButton(dot);
         dot.addEventListener('click', function () {
             setTheme(t.id);
             if (typeof analyticsTrack === 'function') analyticsTrack('theme_set');
@@ -43,18 +45,31 @@ function renderThemeDots() {
     });
 }
 
+/** 主题 id 是否在白名单内（用于校验外部数据） */
+function isKnownThemeId(id) {
+    for (var i = 0; i < THEME_LIST.length; i++) {
+        if (THEME_LIST[i].id === id) return true;
+    }
+    return false;
+}
+
 /**
  * 设置主题
+ *
+ * 只接受 THEME_LIST 里的 id：导入的备份可能带着任意字符串，
+ * 直接 setAttribute('data-theme', 任意值) 会留下一个永远匹配不到样式的脏值
+ * （不报错，但主题静默失效）。
  */
 function setTheme(theme) {
-    // 如果是默认主题，移除 data-theme 属性
-    if (theme === 'default' || !theme) {
+    if (!theme || !isKnownThemeId(theme)) theme = 'default';
+
+    // 存储读写都要容错：Safari 隐私模式下 setItem 会抛异常，不能让切主题直接报错中断
+    if (theme === 'default') {
         document.documentElement.removeAttribute('data-theme');
-        localStorage.removeItem(THEME_KEY);
-        theme = 'default';
+        try { localStorage.removeItem(THEME_KEY); } catch (e) { /* 忽略 */ }
     } else {
         document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem(THEME_KEY, theme);
+        try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* 忽略 */ }
     }
 
     // 更新圆点选中状态
@@ -77,6 +92,7 @@ function setTheme(theme) {
 function loadTheme() {
     renderThemeDots();
 
-    var saved = localStorage.getItem(THEME_KEY);
+    var saved = null;
+    try { saved = localStorage.getItem(THEME_KEY); } catch (e) { /* 忽略 */ }
     setTheme(saved || 'default');
 }

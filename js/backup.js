@@ -41,13 +41,19 @@ function backupReadJSON(key, fallback) {
  * 导出、备份文本、云备份、指纹计算都用它，保证口径统一
  */
 function collectBackupPayload() {
-    var countdowns = backupReadJSON('countdownList', []);
+    var countdowns = backupReadJSON(STORAGE_KEYS.countdowns, []);
     if (!Array.isArray(countdowns)) countdowns = [];
 
-    var todos = backupReadJSON('todoList', []);
+    var todos = backupReadJSON(STORAGE_KEYS.todos, []);
     if (!Array.isArray(todos)) todos = [];
 
-    var planData = backupReadJSON('schedulePlan', null);
+    var planData = backupReadJSON(STORAGE_KEYS.plan, null);
+
+    // 主题存的是裸字符串（不是 JSON），单独读并容错
+    var theme = 'default';
+    try {
+        theme = localStorage.getItem(STORAGE_KEYS.theme) || 'default';
+    } catch (e) { /* 隐私模式：退回默认主题 */ }
 
     return {
         version: 4,
@@ -57,7 +63,7 @@ function collectBackupPayload() {
         countdowns: countdowns,
         todos: todos,
         plan: planData,
-        theme: localStorage.getItem('calendar_theme') || 'default'
+        theme: theme
     };
 }
 
@@ -171,13 +177,10 @@ function backupStatus() {
     };
 }
 
-/** 把时间戳格式化为「2026-10-06 15:30」 */
+/** 把时间戳格式化为「2026-10-06 15:30」— 实现统一在 utils.js 的 formatDateTime() */
 function backupFormatTime(ts) {
     if (!ts) return '从未';
-    var d = new Date(ts);
-    function pad(n) { return String(n).padStart(2, '0'); }
-    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
-        ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    return formatDateTime(ts);
 }
 
 /** 页脚「备份」入口上的小红点 */
@@ -211,7 +214,7 @@ function applyImportedBackup(data) {
     if (data && typeof data === 'object' && !Array.isArray(data)) {
         if ((data.version === 2 || data.version === 3 || data.version === 4) && data.statuses) {
             statuses = sanitizeStatusMap(data.statuses);
-            if (Array.isArray(data.countdowns)) countdowns = data.countdowns;
+            if (data.countdowns !== undefined) countdowns = sanitizeCountdowns(data.countdowns);
             if (Array.isArray(data.todos)) todos = data.todos.filter(isValidTodo);
             if (data.plan && typeof data.plan === 'object') planData = sanitizePlanData(data.plan);
             if (typeof data.theme === 'string') theme = data.theme;
@@ -226,7 +229,8 @@ function applyImportedBackup(data) {
     }
 
     // 导入前留一份快照，万一导错可从控制台恢复
-    var backup = localStorage.getItem('workStatusMap');
+    var backup = null;
+    try { backup = localStorage.getItem(STORAGE_KEYS.statuses); } catch (e) { /* 忽略 */ }
 
     var confirmMessage = '确定要导入数据吗？\n\n将导入 ' + Object.keys(statuses).length + ' 个标记'
         + (countdowns ? '、' + countdowns.length + ' 个倒计时' : '')
@@ -238,16 +242,20 @@ function applyImportedBackup(data) {
     }
 
     try {
-        localStorage.setItem('workStatusMap', JSON.stringify(statuses));
-        if (countdowns !== null) localStorage.setItem('countdownList', JSON.stringify(countdowns));
-        if (todos !== null) localStorage.setItem('todoList', JSON.stringify(todos));
-        if (planData !== null) localStorage.setItem('schedulePlan', JSON.stringify(planData));
-        if (theme) localStorage.setItem('calendar_theme', theme);
+        localStorage.setItem(STORAGE_KEYS.statuses, JSON.stringify(statuses));
+        if (countdowns !== null) localStorage.setItem(STORAGE_KEYS.countdowns, JSON.stringify(countdowns));
+        if (todos !== null) localStorage.setItem(STORAGE_KEYS.todos, JSON.stringify(todos));
+        if (planData !== null) localStorage.setItem(STORAGE_KEYS.plan, JSON.stringify(planData));
+        if (theme) localStorage.setItem(STORAGE_KEYS.theme, theme);
     } catch (e) {
         return { ok: false, msg: '❌ 写入本地存储失败（可能空间不足）' };
     }
 
     if (backup) console.log('[导入备份] 导入前的数据快照：', backup);
+
+    // 数据已被整体替换：撤销栈里的旧值再回放就是错的，必须清空。
+    // （否则用户导入后按 Ctrl+Z 会把导入前的旧状态写回刚导入的数据）
+    if (typeof clearHistory === 'function') clearHistory();
 
     // 刷新各模块
     loadFromStorage();
@@ -270,28 +278,9 @@ function applyImportedBackup(data) {
 // 剪贴板
 // ============================================================
 
-/** 复制文本到剪贴板；返回 Promise<boolean>（含 execCommand 兜底） */
+/** 复制文本到剪贴板；返回 Promise<boolean>（统一实现见 utils.js 的 copyTextToClipboard） */
 function backupCopyText(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        return navigator.clipboard.writeText(text).then(function () { return true; },
-            function () { return backupCopyFallback(text); });
-    }
-    return Promise.resolve(backupCopyFallback(text));
-}
-
-function backupCopyFallback(text) {
-    try {
-        var ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;';
-        document.body.appendChild(ta);
-        ta.select();
-        var ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-        return ok;
-    } catch (e) {
-        return false;
-    }
+    return copyTextToClipboard(text);
 }
 
 // ============================================================

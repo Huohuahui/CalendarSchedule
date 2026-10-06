@@ -152,3 +152,140 @@ function calcPercent(done, target) {
     if (target === 0) return 0;
     return clamp((done / target) * 100, 0, 100);
 }
+
+/**
+ * 判断事件目标是否为「可编辑控件」
+ *
+ * 用途：全局快捷键（如 Ctrl+Z）在输入框里必须让位给浏览器原生行为，
+ * 否则在待办标题、方案名称、备份粘贴框里按 Ctrl+Z 会误触发排班撤销，
+ * 同时 preventDefault 还会屏蔽掉输入框自己的撤销。
+ *
+ * @param {EventTarget} el
+ * @returns {boolean}
+ */
+function isEditableTarget(el) {
+    if (!el || !el.tagName) return false;
+    var tag = el.tagName.toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
+    return el.isContentEditable === true;
+}
+
+/**
+ * 清洗排班数据：只保留合法的键值对
+ *
+ * 启动加载（storage.js）与导入备份（backup.js）共用这一份实现 ——
+ * 之前 storage.js 内联了一套等价校验、main.js 又写了一份，
+ * 改一处漏一处就会造成两条路径行为不一致。
+ *
+ * @param {*} raw 来自 localStorage 或备份文件的原始数据
+ * @returns {{[dateKey: string]: 'overtime'|'rest'}} 清洗后的新对象
+ */
+function sanitizeStatusMap(raw) {
+    var result = {};
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return result;
+    Object.keys(raw).forEach(function (key) {
+        // 键必须是 YYYY-MM-DD，值只能是 overtime / rest
+        if (/^\d{4}-\d{2}-\d{2}$/.test(key) &&
+            (raw[key] === 'overtime' || raw[key] === 'rest')) {
+            result[key] = raw[key];
+        }
+    });
+    return result;
+}
+
+/**
+ * 把元素标记为「可聚焦的模拟按钮」
+ *
+ * 用于本来只有 onclick 的 div/span：补上 role 与 tabindex 后能被 Tab 聚焦，
+ * 再配合 initKeyboardActivation() 让 Enter / 空格也能触发。
+ * @param {HTMLElement} el
+ * @returns {HTMLElement}
+ */
+function makeFocusableButton(el) {
+    if (!el) return el;
+    el.setAttribute('role', 'button');
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+    return el;
+}
+
+/** 键盘激活是否已绑定（幂等守卫） */
+var keyboardActivationBound = false;
+
+/**
+ * 让「用 div/span 模拟的按钮」支持键盘
+ *
+ * 浏览器不会给 div[role=button] 自动绑定 Enter / 空格，这里统一补一份，
+ * 避免每个元素各写一段 keydown（也很容易漏）。
+ */
+function initKeyboardActivation() {
+    if (keyboardActivationBound) return;
+    keyboardActivationBound = true;
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+        var el = e.target;
+        if (!el || !el.getAttribute) return;
+        if (el.getAttribute('role') !== 'button') return;
+        var tag = el.tagName ? el.tagName.toLowerCase() : '';
+        if (tag === 'button' || tag === 'a' || tag === 'input') return;   // 原生已支持
+        e.preventDefault();     // 空格默认会滚动页面
+        el.click();
+    });
+}
+
+/**
+ * 今天 'YYYY-MM-DD'（本地时区）
+ * countdown.js 与 analytics.js 原先各写了一份等价实现，统一到这里
+ */
+function todayStr() {
+    var t = new Date();
+    return formatDate(t.getFullYear(), t.getMonth() + 1, t.getDate());
+}
+
+/**
+ * 时间戳 → 'YYYY-MM-DD HH:MM'（本地时区）
+ * backup.js 与 error-log.js 原先各写了一份等价实现，统一到这里
+ * @param {number} ts 时间戳
+ * @returns {string}
+ */
+function formatDateTime(ts) {
+    var d = new Date(ts);
+    var pad = function (n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+        ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+/**
+ * 复制文本到剪贴板（统一实现）
+ * 优先用异步剪贴板 API；不可用或被拒绝时退回 execCommand('copy')
+ * @param {string} text
+ * @returns {Promise<boolean>} 是否复制成功
+ */
+function copyTextToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).then(
+            function () { return true; },
+            function () { return copyTextLegacy(text); }
+        );
+    }
+    return Promise.resolve(copyTextLegacy(text));
+}
+
+/** execCommand('copy') 兜底（旧浏览器 / 非安全上下文 / 剪贴板权限被拒时） */
+function copyTextLegacy(text) {
+    try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', 'readonly');
+        ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;';
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return !!ok;
+    } catch (e) {
+        return false;
+    }
+}
+

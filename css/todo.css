@@ -117,9 +117,11 @@
     background: #fbfdff;
     transition: 0.2s;
 }
-.todo-item:hover {
-    border-color: #dbe3ee;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+@media (hover: hover) {
+    .todo-item:hover {
+        border-color: #dbe3ee;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    }
 }
 .todo-item.overdue {
     border-color: #fecaca;
@@ -351,6 +353,14 @@
 }
 .todo-remind-item.due-today {
     background: var(--primary-bg);
+}
+/* 「明天 / 2~3 天后到期」：弱于「今天到期」，但要有区分度 */
+.todo-remind-item.due-soon {
+    background: var(--warn-bg);
+}
+.todo-remind-item.due-soon .todo-remind-meta {
+    color: var(--warn-dark);
+    font-weight: 600;
 }
 .todo-remind-main {
     flex: 1;

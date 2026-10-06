@@ -221,19 +221,22 @@
     max-width: 100%;
 }
 
-/* 悬停：虚线转实线，并跟随当前主题色 */
-.quick-actions .info-card:hover {
-    border-style: solid;
-    border-color: var(--primary);
-    background: var(--primary-bg);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12);
-}
-.quick-actions .info-card:hover .icon {
-    transform: scale(1.12);
-}
-.quick-actions .info-card:hover .name {
-    color: var(--primary-dark);
+/* 悬停：虚线转实线，并跟随当前主题色
+   （只在有真实指针的设备上生效，否则触屏点一下会一直保持高亮） */
+@media (hover: hover) {
+    .quick-actions .info-card:hover {
+        border-style: solid;
+        border-color: var(--primary);
+        background: var(--primary-bg);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12);
+    }
+    .quick-actions .info-card:hover .icon {
+        transform: scale(1.12);
+    }
+    .quick-actions .info-card:hover .name {
+        color: var(--primary-dark);
+    }
 }
 
 .quick-actions .info-card:active {

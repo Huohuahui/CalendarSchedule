@@ -273,10 +273,16 @@ function initCalendarKeyboard() {
 
         var handled = true;
         if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
-            cycleDayStatus(y, m, d);
-            // 状态切换会整块重绘，重绘后把焦点放回同一天
-            calendarFocusDay = d;
-            setTimeout(function () { focusCalendarDay(y, m, d); }, 0);
+            // 多选模式下，键盘要与鼠标行为一致：Enter 是「加入 / 移出选区」，
+            // 而不是循环切换状态（否则键盘用户根本没法完成多选）
+            if (typeof multiSelectMode !== 'undefined' && multiSelectMode) {
+                toggleDateSelection(y, m, d, cell);
+            } else {
+                cycleDayStatus(y, m, d);
+                // 状态切换会整块重绘，重绘后把焦点放回同一天
+                calendarFocusDay = d;
+                setTimeout(function () { focusCalendarDay(y, m, d); }, 0);
+            }
         } else if (e.key === 'ArrowLeft') {
             calendarMoveFocus(y, m, d, -1);
         } else if (e.key === 'ArrowRight') {

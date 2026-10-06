@@ -81,12 +81,9 @@ function analyticsSave(data) {
     }
 }
 
-/** 今天的日期键（本地时区） */
+/** 今天的日期键（本地时区）— 实现统一在 utils.js 的 todayStr() */
 function analyticsDayKey() {
-    var d = new Date();
-    return d.getFullYear() + '-' +
-        String(d.getMonth() + 1).padStart(2, '0') + '-' +
-        String(d.getDate()).padStart(2, '0');
+    return todayStr();
 }
 
 // ============================================================

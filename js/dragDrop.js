@@ -25,11 +25,6 @@ let dragData = null;
 let dragDropped = false;
 
 /**
- * 本次拖拽累计标记的日期数（用于结束时给出汇总提示）
- */
-let dragDropCount = 0;
-
-/**
  * 设置拖拽功能
  * 
  * 知识点：
@@ -47,7 +42,6 @@ function setupDragDrop(overtimeBtn, restBtn, onDrop) {
         // 记录拖拽类型，并重置本次拖拽的落点统计
         dragData = { type: type };
         dragDropped = false;
-        dragDropCount = 0;
         
         // 创建自定义拖拽图像
         const clone = document.createElement('div');
@@ -159,7 +153,6 @@ function setupDragDrop(overtimeBtn, restBtn, onDrop) {
         setStatus(year, month, day, status);
         
         dragDropped = true;
-        dragDropCount++;
         
         // 显示提示
         const label = status === 'overtime' ? '🌙 加班' : '☀️ 休息';

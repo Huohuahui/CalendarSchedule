@@ -292,6 +292,7 @@ function buildTodoItem(todo) {
     check.className = 'todo-check';
     check.textContent = '✓';
     check.title = todo.done ? '标记为未完成' : '标记为已完成';
+    check.setAttribute('aria-label', todo.done ? '标记为未完成' : '标记为已完成');
     check.onclick = function () { toggleTodoDone(todo.id); };
     item.appendChild(check);
 
@@ -449,7 +450,10 @@ function showTodoForm(id) {
     saveBtn.type = 'button';
     saveBtn.className = 'modal-btn modal-btn-primary';
     saveBtn.textContent = editing ? '保存' : '添加';
-    saveBtn.onclick = function () { submitTodoForm(); };
+    saveBtn.onclick = function () {
+        // 防重：提交成功后立刻禁用按钮，避免快速连点产生重复条目
+        if (submitTodoForm()) saveBtn.disabled = true;
+    };
 
     btnGroup.appendChild(cancelBtn);
     btnGroup.appendChild(saveBtn);
@@ -463,15 +467,15 @@ function submitTodoForm() {
     var timeInput = document.getElementById('todoTimeInput');
     var titleInput = document.getElementById('todoTitleInput');
     var detailInput = document.getElementById('todoDetailInput');
-    if (!dateInput || !titleInput) return;
+    if (!dateInput || !titleInput) return false;
 
     var date = (dateInput.value || '').trim();
     var time = (timeInput && timeInput.value || '').trim();
     var title = (titleInput.value || '').trim();
     var detail = (detailInput && detailInput.value || '').trim();
 
-    if (!title) { showToast('⚠️ 请填写主题'); titleInput.focus(); return; }
-    if (!date) { showToast('⚠️ 请选择时间（日期）'); dateInput.focus(); return; }
+    if (!title) { showToast('⚠️ 请填写主题'); titleInput.focus(); return false; }
+    if (!date) { showToast('⚠️ 请选择时间（日期）'); dateInput.focus(); return false; }
 
     if (todoEditingId) {
         for (var i = 0; i < todoList.length; i++) {
@@ -501,6 +505,7 @@ function submitTodoForm() {
     saveTodos();
     renderTodoList();
     renderTodoBadge();
+    return true;
 }
 
 // ============================================================

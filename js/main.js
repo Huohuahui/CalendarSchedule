@@ -27,6 +27,8 @@ function currentWeatherCoords() {
 /** 天气缓存有效期：10 分钟 */
 var WEATHER_CACHE_TTL = 10 * 60 * 1000;
 var WEATHER_CACHE_KEY = 'weatherCache';
+/** 天气请求序号：切换地点后，旧请求的迟到响应必须丢弃，否则会覆盖新城市的天气 */
+var weatherRequestSeq = 0;
 
 // ---------- DOM 引用 ----------
 var prevMonthBtn = document.getElementById('prevMonthBtn');
@@ -137,15 +139,26 @@ function handleMarkAction(status) {
 /** 把指定状态批量应用到所有选中日期 */
 function applyMarkToSelected(status) {
     var count = selectedDates.length;
-    selectedDates.forEach(function (key) {
-        var p = key.split('-');
-        setStatus(parseInt(p[0], 10), parseInt(p[1], 10), parseInt(p[2], 10), status);
+    if (count === 0) {
+        showToast('☑️ 请先点击日期加入选区');
+        return;
+    }
+
+    // 聚合成一个批次再提交：一次批量标记只占一条历史，撤销时一次性回退
+    // （逐个 setStatus 会产生 N 条历史，用户要按 N 次 Ctrl+Z 才能回退）
+    var changes = selectedDates.map(function (key) {
+        return { key: key, from: statusMap[key] || 'normal', to: status };
     });
+    var changed = applyChanges(changes);
+
     clearDateSelection();
     fullUpdate();
     updateMultiSelectUI();
+
     var label = status === 'overtime' ? '🌙 加班' : '☀️ 休息';
-    showToast('✅ 已将 ' + count + ' 天标记为 ' + label);
+    showToast(changed > 0
+        ? '✅ 已将 ' + changed + ' 天标记为 ' + label + '（可 Ctrl+Z 撤销）'
+        : 'ℹ️ 选中日期已是「' + label + '」，无需改动');
 }
 
 // ---------- 多选模式 ----------
@@ -183,7 +196,7 @@ function clearCurrentMonth() {
             showToast('☑️ 请先选择日期');
             return;
         }
-        if (!confirm('⚠️ 确定要清除选中的 ' + selectedDates.length + ' 天的标记吗？\n\n此操作不可撤销！')) {
+        if (!confirm('⚠️ 确定要清除选中的 ' + selectedDates.length + ' 天的标记吗？\n\n（可用 Ctrl+Z 撤销）')) {
             showToast('❌ 已取消清除操作');
             return;
         }
@@ -208,7 +221,7 @@ function clearCurrentMonth() {
         return;
     }
 
-    var confirmMessage = '⚠️ 确定要清除 ' + currentYear + '年' + currentMonth + '月的所有标记吗？\n\n加班 ' + overtimeCount + ' 天，休息 ' + restCount + ' 天，共 ' + total + ' 个标记\n\n此操作不可撤销！';
+    var confirmMessage = '⚠️ 确定要清除 ' + currentYear + '年' + currentMonth + '月的所有标记吗？\n\n加班 ' + overtimeCount + ' 天，休息 ' + restCount + ' 天，共 ' + total + ' 个标记\n\n（可用 Ctrl+Z 撤销）';
 
     if (confirm(confirmMessage)) {
         var removed = clearMonth(currentYear, currentMonth);
@@ -265,18 +278,7 @@ function updateUndoUI() {
 // 版本 2：完整备份（排班 + 倒计时 + 主题）
 // ============================================================
 
-/** 清洗排班数据：只保留合法的键值对 */
-function sanitizeStatusMap(raw) {
-    var result = {};
-    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return result;
-    Object.keys(raw).forEach(function (key) {
-        if (/^\d{4}-\d{2}-\d{2}$/.test(key) &&
-            (raw[key] === 'overtime' || raw[key] === 'rest')) {
-            result[key] = raw[key];
-        }
-    });
-    return result;
-}
+// 注：sanitizeStatusMap 已统一到 utils.js（启动加载与导入备份共用同一份实现）
 
 function exportData() {
     var statusCount = Object.keys(statusMap).length;
@@ -355,8 +357,11 @@ function startClock() {
     // 对齐到下一个整秒启动，避免秒数跳变抖动
     var delay = 1000 - (Date.now() % 1000);
     setTimeout(function tick() {
-        updateClock();
-        updateGreeting();
+        // 页面不可见时跳过 DOM 更新（省电、省 CPU），回到前台立刻恢复
+        if (!document.hidden) {
+            updateClock();
+            updateGreeting();
+        }
         setTimeout(tick, 1000);
     }, delay);
 }
@@ -452,12 +457,20 @@ function getCachedWeather() {
     }
 }
 
-function cacheWeather(data) {
+/**
+ * 写入天气缓存
+ * @param {object} data 接口返回的数据
+ * @param {{latitude:number, longitude:number, name:string}} [loc] 发起请求时的地点
+ *
+ * 注意：必须传入「发起请求时」的地点，不能在这里重新读当前地点。
+ * 否则请求在途时切换城市，A 城的数据会被记成 B 城的缓存。
+ */
+function cacheWeather(data, loc) {
     try {
-        var loc = currentWeatherCoords();
+        var l = loc || currentWeatherCoords();
         localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({
             fetchedAt: Date.now(),
-            loc: { latitude: loc.latitude, longitude: loc.longitude, name: loc.name },
+            loc: { latitude: l.latitude, longitude: l.longitude, name: l.name },
             data: data
         }));
     } catch (e) { /* 存储失败不影响使用 */ }
@@ -479,6 +492,7 @@ function fetchWeather(forceRefresh) {
     container.innerHTML = '<div class="weather-loading">⏳ 加载中...</div>';
 
     var loc = currentWeatherCoords();
+    var mySeq = ++weatherRequestSeq;   // 本次请求的序号，用于丢弃迟到响应
     var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + loc.latitude +
         '&longitude=' + loc.longitude +
         '&current_weather=true' +
@@ -495,8 +509,10 @@ function fetchWeather(forceRefresh) {
         .then(function (res) { return res.json(); })
         .then(function (data) {
             clearTimeout(timeoutId);
+            // 期间又发起了新请求（例如切了城市）→ 本次结果已过期，丢弃
+            if (mySeq !== weatherRequestSeq) return;
             if (data && data.current_weather) {
-                cacheWeather(data);
+                cacheWeather(data, loc);
                 renderWeatherWithForecast(data);
             } else {
                 container.innerHTML = '<div class="weather-loading">暂无天气数据</div>';
@@ -504,6 +520,7 @@ function fetchWeather(forceRefresh) {
         })
         .catch(function () {
             clearTimeout(timeoutId);
+            if (mySeq !== weatherRequestSeq) return;
             // 失败时尝试用过期缓存兜底（有总比没有强，但必须是同一地点）
             var stale = null;
             try {
@@ -738,6 +755,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // 全站唯一的 Esc 浮层关闭监听（各模块通过 overlay.js 注册自己的关闭函数）
     if (typeof initOverlayEsc === 'function') initOverlayEsc();
 
+    // 弹窗无障碍增强层：统一补 role/aria-modal、初始焦点、焦点困留与归还
+    if (typeof initModalA11y === 'function') initModalA11y();
+
+    // 让 div/span 模拟的按钮支持回车 / 空格触发
+    if (typeof initKeyboardActivation === 'function') initKeyboardActivation();
+
     var total = Object.keys(statusMap).length;
     showToast('💾 已加载 ' + total + ' 个标记');
 
@@ -787,6 +810,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // 键盘快捷键：Ctrl/⌘ + Z 撤销，Ctrl/⌘ + Shift + Z 或 Ctrl + Y 重做
     document.addEventListener('keydown', function (e) {
         if (!(e.ctrlKey || e.metaKey)) return;
+        // 焦点在输入框/文本域里时让位给浏览器原生撤销，
+        // 否则在待办标题、方案名称、备份粘贴框里按 Ctrl+Z 会误撤销排班
+        if (isEditableTarget(e.target)) return;
         var k = (e.key || '').toLowerCase();
         if (k === 'z' && !e.shiftKey) {
             e.preventDefault();

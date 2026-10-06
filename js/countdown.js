@@ -68,12 +68,9 @@ function parseDateOnly(str) {
     return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
 }
 
-/** 今天 'YYYY-MM-DD'（本地时区） */
+/** 今天 'YYYY-MM-DD'（本地时区）— 实现统一在 utils.js 的 todayStr() */
 function todayDateStr() {
-    var t = new Date();
-    return t.getFullYear() + '-' +
-        String(t.getMonth() + 1).padStart(2, '0') + '-' +
-        String(t.getDate()).padStart(2, '0');
+    return todayStr();
 }
 
 // ---------- 数据操作 ----------
@@ -84,13 +81,53 @@ function loadCountdownList() {
         if (stored) {
             var parsed = JSON.parse(stored);
             if (Array.isArray(parsed)) {
-                return parsed;
+                return sanitizeCountdowns(parsed);
             }
         }
         return [];
     } catch (e) {
         return [];
     }
+}
+
+/**
+ * 清洗倒计时列表
+ *
+ * statuses / todos / plan 都有各自的清洗函数，这里之前是缺口：
+ * 导入时只判断「是不是数组」就整包入库，缺字段的条目会在渲染时露出 undefined。
+ * 所有入库入口（导入备份、云端恢复、启动加载）都必须过这里。
+ *
+ * @param {Array} raw 外部数据
+ * @returns {Array} 只含合法条目的新数组
+ */
+function sanitizeCountdowns(raw) {
+    if (!Array.isArray(raw)) return [];
+    var out = [];
+    var seen = {};
+    for (var i = 0; i < raw.length && out.length < MAX_COUNTDOWN; i++) {
+        var it = raw[i];
+        if (!it || typeof it !== 'object' || Array.isArray(it)) continue;
+
+        var name = (typeof it.name === 'string') ? it.name.trim().slice(0, 20) : '';
+        var date = (typeof it.targetDate === 'string') ? it.targetDate : '';
+        if (!name || !/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+        if (seen[name]) continue;                       // 同名去重，与新增时的校验一致
+        seen[name] = 1;
+
+        var category = CATEGORY_DATA[it.category] ? it.category : CATEGORY_NAMES[0];
+        var subCategory = (typeof it.subCategory === 'string') ? it.subCategory : '';
+
+        out.push({
+            id: (typeof it.id === 'string' && it.id) ? it.id.slice(0, 60) : ('cd_' + Date.now() + '_' + out.length),
+            name: name,
+            targetDate: date,
+            category: category,
+            subCategory: subCategory,
+            subIcon: getSubIcon(category, subCategory),  // 不信任存储里的图标，按分类现算
+            pinned: it.pinned === true
+        });
+    }
+    return out;
 }
 
 function saveCountdownList(list) {
@@ -212,6 +249,8 @@ function renderCountdownList() {
 
         var card = document.createElement('div');
         card.className = 'countdown-card' + (isPinned ? ' pinned' : '');
+        card.setAttribute('aria-label', '倒计时：' + item.name);
+        makeFocusableButton(card);
         card.onclick = (function (it) {
             return function () { showActionModal(it); };
         })(item);
@@ -314,6 +353,8 @@ function showActionModal(item) {
     var editBtn = document.createElement('div');
     editBtn.className = 'action-menu-item';
     editBtn.textContent = '✏️ 编辑';
+    editBtn.setAttribute('aria-label', '编辑');
+    makeFocusableButton(editBtn);
     editBtn.onclick = function () {
         overlay.remove();
         showCountdownModal('edit', item);
@@ -323,6 +364,8 @@ function showActionModal(item) {
     var deleteBtn = document.createElement('div');
     deleteBtn.className = 'action-menu-item danger';
     deleteBtn.textContent = '🗑️ 删除';
+    deleteBtn.setAttribute('aria-label', '删除');
+    makeFocusableButton(deleteBtn);
     deleteBtn.onclick = function () {
         if (confirm('确定要删除「' + item.name + '」吗？')) {
             deleteCountdownItem(item.id);
@@ -614,14 +657,6 @@ function showCountdownModal(mode, item) {
             overlay.remove();
         }
     };
-}
-
-// 兼容旧调用名（如有外部调用会路由到合并后的弹窗）
-function showAddCountdownModal() {
-    showCountdownModal('add');
-}
-function showEditCountdownModal(item) {
-    showCountdownModal('edit', item);
 }
 
 // ---------- 初始化 ----------

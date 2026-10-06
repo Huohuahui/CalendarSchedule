@@ -11,10 +11,34 @@
 
 // ---------- 常量 ----------
 /**
- * localStorage 的键名
+ * localStorage 键名统一登记表
+ *
+ * 为什么集中放这里：导入 / 导出 / 备份这类「一次横跨多个键」的路径，
+ * 如果各处自己硬编码键名字符串，改一处漏一处就会静默失效。
+ * 各模块可以保留自己的常量，但取值应当来自本表。
+ */
+const STORAGE_KEYS = {
+    statuses: 'workStatusMap',
+    countdowns: 'countdownList',
+    todos: 'todoList',
+    plan: 'schedulePlan',
+    theme: 'calendar_theme',
+    weatherCache: 'weatherCache',
+    weatherLocation: 'weatherLocation',
+    backupMeta: 'backupMeta',
+    backupRemindLog: 'backupRemindLog',
+    todoRemindLog: 'todoReminderLog',
+    analyticsLocal: 'analyticsLocal',
+    analyticsOptin: 'analyticsOptin',
+    errorLog: 'errorLog',
+    cloudEnabled: 'cloudBackupEnabled'
+};
+
+/**
+ * 排班数据的 localStorage 键名
  * 知识点：使用常量定义键名，避免拼写错误
  */
-const STORAGE_KEY = 'workStatusMap';
+const STORAGE_KEY = STORAGE_KEYS.statuses;
 
 /**
  * 数据存储对象
@@ -55,12 +79,10 @@ function loadFromStorage() {
             // 将 JSON 字符串解析为对象
             const parsed = JSON.parse(stored);
             
-            // 验证：必须是对象且不是数组
-            if (typeof parsed === 'object' && !Array.isArray(parsed)) {
-                statusMap = parsed;  // 赋值给全局变量
-            } else {
-                statusMap = {};      // 数据无效，重置
-            }
+            // 验证并清洗：必须是对象且不是数组；非法键值一律丢弃
+            // 清洗逻辑统一在 utils.js 的 sanitizeStatusMap，
+            // 导入备份走的是同一个函数，避免两处实现漂移
+            statusMap = sanitizeStatusMap(parsed);
         } else {
             statusMap = {};          // 没有数据，重置
         }
@@ -69,23 +91,6 @@ function loadFromStorage() {
         console.warn('加载数据失败，重置为空:', error);
         statusMap = {};
     }
-
-    // ---------- 数据验证和清理 ----------
-    // 遍历所有键，删除无效的条目
-    Object.keys(statusMap).forEach(key => {
-        // 检查键是否为日期格式：YYYY-MM-DD
-        // 正则表达式：^\d{4}-\d{2}-\d{2}$ 表示4位数字-2位数字-2位数字
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) {
-            delete statusMap[key];   // 删除无效键
-            return;
-        }
-        
-        // 检查值是否有效：只能是 'overtime' 或 'rest'
-        const value = statusMap[key];
-        if (value !== 'overtime' && value !== 'rest') {
-            delete statusMap[key];   // 删除无效值
-        }
-    });
 }
 
 // ---------- 数据保存 ----------

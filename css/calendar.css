@@ -190,9 +190,15 @@
     box-shadow: 0 4px 16px rgba(22, 163, 74, 0.3);
 }
 
-.day-cell:not(.other-month):hover {
-    filter: brightness(0.95);
-    transform: scale(1.03);
+/* 悬停反馈只在有真实指针（鼠标 / 触控笔）的设备上生效：
+   触屏点一下会让 :hover "粘住"，高亮一直留着很难看。
+   （原选择器里还带一个 :not(...) 条件，但日历只渲染当月格子，
+     那个类名根本不会出现，已顺手去掉） */
+@media (hover: hover) {
+    .day-cell:hover {
+        filter: brightness(0.95);
+        transform: scale(1.03);
+    }
 }
 
 /* ---------- 状态标签 ---------- */
@@ -820,6 +826,8 @@
     border: 2px solid #e2e8f0;
     transition: 0.2s;
 }
-.theme-dot:hover {
-    transform: scale(1.15);
+@media (hover: hover) {
+    .theme-dot:hover {
+        transform: scale(1.15);
+    }
 }

@@ -139,7 +139,7 @@
             <hr class="divider">
 
             <!-- ===== 排班方案入口（目标天数可定制） ===== -->
-            <div class="plan-entry-bar" id="planEntry" title="定制排班方案：大月/小月目标与额外上限都能改">
+            <div class="plan-entry-bar" id="planEntry" tabindex="0" role="button" title="定制排班方案：大月/小月目标与额外上限都能改">
                 <span class="plan-entry-icon">🧭</span>
                 <span class="plan-entry-name" id="planEntryHint">标准班</span>
                 <span class="plan-entry-go">定制 ›</span>
@@ -149,7 +149,7 @@
             <div class="countdown-module">
                 <div class="countdown-header">
                     <span class="countdown-title">⏱️ 倒计时</span>
-                    <span id="addCountdownBtn" class="countdown-add">✚ 添加</span>
+                    <span id="addCountdownBtn" class="countdown-add" tabindex="0" role="button">✚ 添加</span>
                 </div>
                 <div id="countdownList" class="countdown-list">
                     <div class="countdown-empty">暂无倒计时，点击 ✚ 添加</div>
@@ -162,9 +162,9 @@
             <div class="calendar-header">
                 <div class="month-year" id="monthYearDisplay">2026年7月</div>
                 <div class="nav-group">
-                    <button class="nav-btn arrow-btn" id="prevMonthBtn"></button>
+                    <button class="nav-btn" id="prevMonthBtn" aria-label="上一月"></button>
                     <button class="nav-btn today-btn" id="todayBtn">📌 今天</button>
-                    <button class="nav-btn arrow-btn" id="nextMonthBtn"></button>
+                    <button class="nav-btn" id="nextMonthBtn" aria-label="下一月"></button>
                 </div>
             </div>
 
@@ -183,11 +183,11 @@
             <!-- ===== 底部操作栏 ===== -->
             <div class="footer-bar">
                 <div class="footer-hints">
-                    <span id="undoBtn" class="footer-link">↩︎ 撤销</span>
+                    <span id="undoBtn" class="footer-link" tabindex="0" role="button" title="撤销上一步（Ctrl+Z）">↩︎ 撤销</span>
                     <span class="hint-sep">·</span>
-                    <span id="backupBtn" class="footer-link" title="备份 / 恢复数据">💾 备份</span>
+                    <span id="backupBtn" class="footer-link" tabindex="0" role="button" title="备份 / 恢复数据">💾 备份</span>
                     <span class="hint-sep">·</span>
-                    <span id="importBtn" class="footer-link">📂 导入</span>
+                    <span id="importBtn" class="footer-link" tabindex="0" role="button" title="从备份文件导入">📂 导入</span>
                 </div>
                 <div class="action-group">
                     <button class="action-btn clear-btn" id="clearMonthBtn">🗑️ 清除</button>
@@ -215,7 +215,7 @@
 
             <!-- 四项快速操作排成 2×2 宫格，图标在左文字在右，尽量压缩高度 -->
             <div class="quick-actions">
-                <div class="info-card" id="quickTodo" title="打开待办事项总览">
+                <div class="info-card" id="quickTodo" tabindex="0" role="button" title="打开待办事项总览">
                     <span class="icon">📝</span>
                     <span class="text-wrap">
                         <span class="name">待办</span>
@@ -223,7 +223,7 @@
                     </span>
                 </div>
 
-                <div class="info-card" id="quickClear" title="清空本月的所有标记">
+                <div class="info-card" id="quickClear" tabindex="0" role="button" title="清空本月的所有标记">
                     <span class="icon">🧹</span>
                     <span class="text-wrap">
                         <span class="name">清除</span>
@@ -231,7 +231,7 @@
                     </span>
                 </div>
 
-                <div class="info-card" id="quickTemplate" title="套用排班模板（上五休二等）">
+                <div class="info-card" id="quickTemplate" tabindex="0" role="button" title="套用排班模板（上五休二等）">
                     <span class="icon">📋</span>
                     <span class="text-wrap">
                         <span class="name">模板</span>
@@ -239,7 +239,7 @@
                     </span>
                 </div>
 
-                <div class="info-card" id="quickCopyPrev" title="把上个月的排班复制到本月">
+                <div class="info-card" id="quickCopyPrev" tabindex="0" role="button" title="把上个月的排班复制到本月">
                     <span class="icon">📄</span>
                     <span class="text-wrap">
                         <span class="name">复制</span>
@@ -256,10 +256,10 @@
             <!-- ===== 天气模块 ===== -->
             <div class="weather-module">
                 <div class="weather-header">
-                    <span class="weather-loc" id="weatherLocBtn" title="点击切换城市">
+                    <span class="weather-loc" id="weatherLocBtn" tabindex="0" role="button" title="点击切换城市">
                         🌤️ <span id="weatherLocName">定位中…</span><span class="weather-loc-caret">▾</span>
                     </span>
-                    <span id="weatherRefresh" class="weather-refresh">🔄 刷新</span>
+                    <span id="weatherRefresh" class="weather-refresh" tabindex="0" role="button" title="刷新天气">🔄 刷新</span>
                 </div>
                 <div id="weatherDisplay" class="weather-body">
                     <div class="weather-loading">⏳ 加载中...</div>
@@ -288,6 +288,7 @@
     <script src="js/utils.js" defer></script>
     <script src="js/analytics.js" defer></script>
     <script src="js/overlay.js" defer></script>
+    <script src="js/modal.js" defer></script>
     <script src="js/storage.js" defer></script>
     <script src="js/history.js" defer></script>
     <script src="js/progress.js" defer></script>

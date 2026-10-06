@@ -90,3 +90,16 @@ function canUndo() {
 function canRedo() {
     return redoStack.length > 0;
 }
+
+/**
+ * 清空撤销 / 重做栈
+ *
+ * 必须在「数据被整体替换」之后调用（导入备份、云端恢复）。
+ * 否则栈里记录的还是替换前的旧值，用户一按 Ctrl+Z 就会把旧值写回新数据，
+ * 得到一份「新旧混合」的结果 —— 看起来像导入失败，实际是被撤销回滚了。
+ */
+function clearHistory() {
+    undoStack = [];
+    redoStack = [];
+    if (typeof updateUndoUI === 'function') updateUndoUI();
+}

@@ -13,7 +13,7 @@
  * ============================================================
  */
 
-var CACHE_NAME = 'schedule-calendar-v15';
+var CACHE_NAME = 'schedule-calendar-v16';
 
 // 说明：Service Worker 必须放在站点根目录，否则它的作用范围（scope）
 // 只能覆盖自己所在的子目录，就无法缓存 index.html / css / js 了。
@@ -40,6 +40,7 @@ var PRECACHE_URLS = [
     './js/error-log.js',
     './js/utils.js',
     './js/overlay.js',
+    './js/modal.js',
     './js/analytics.js',
     './js/storage.js',
     './js/history.js',

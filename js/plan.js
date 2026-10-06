@@ -96,26 +96,11 @@ function sanitizePlanRule(r) {
     };
 }
 
-function findBuiltinPlan(id) {
-    for (var i = 0; i < BUILTIN_PLANS.length; i++) {
-        if (BUILTIN_PLANS[i].id === id) return BUILTIN_PLANS[i];
-    }
-    return null;
-}
-
 /** 全部可选预设 = 内置 + 自建 */
 function allPlanPresets(plan) {
     var list = BUILTIN_PLANS.slice();
     for (var i = 0; i < plan.customPresets.length; i++) list.push(plan.customPresets[i]);
     return list;
-}
-
-function findPlanPreset(plan, id) {
-    var all = allPlanPresets(plan);
-    for (var i = 0; i < all.length; i++) {
-        if (all[i].id === id) return all[i];
-    }
-    return null;
 }
 
 /** 模板名（仅用于显示），templates.js 未加载时返回空 */
@@ -330,6 +315,12 @@ function saveCustomPlanPreset(name, rule, templateId) {
     if (!name) return { ok: false, msg: '请先填写方案名' };
     var plan = loadPlan();
     if (plan.customPresets.length >= 20) return { ok: false, msg: '自建预设已达 20 个上限' };
+    // 防重：同名预设不重复添加（也顺带挡住"连点保存"产生两条一样的预设）
+    for (var i = 0; i < plan.customPresets.length; i++) {
+        if (plan.customPresets[i].name === name) {
+            return { ok: false, msg: '已有同名预设「' + name + '」' };
+        }
+    }
 
     var id = 'custom-' + Date.now().toString(36);
     plan.customPresets.push({

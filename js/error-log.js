@@ -134,10 +134,7 @@ function errorLogSummary() {
 
 function errorLogFormatTime(ts) {
     if (!ts) return '—';
-    var d = new Date(ts);
-    function p(n) { return String(n).padStart(2, '0'); }
-    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
-        ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    return formatDateTime(ts);
 }
 
 /**

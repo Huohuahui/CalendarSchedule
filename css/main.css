@@ -14,7 +14,30 @@
     margin: 0;                      /* 清除所有元素的外边距 */
     padding: 0;                     /* 清除所有元素的内边距 */
     box-sizing: border-box;         /* 盒模型：宽高 = content + padding + border */
-    user-select: none;              /* 禁止选中文字 */
+    user-select: none;              /* 禁止选中文字（主要是为了拖拽体验） */
+}
+
+/*
+   输入框 / 文本域必须允许选中：
+   上面的通配符规则会让用户没法用鼠标选中输入框里的文字去复制 ——
+   备份的「粘贴文本导入」和待办详情框里尤其明显。
+*/
+input,
+textarea,
+select,
+[contenteditable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+/* ---------- 键盘焦点可见性 ---------- */
+/*
+   只在键盘 / 辅助设备聚焦时画焦点环，鼠标点击不画（避免难看的残留框）。
+   此前全站只有一条 .modal-input:focus 规则，键盘用户看不出焦点落在哪。
+*/
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
 
 /* ---------- body 样式 ---------- */

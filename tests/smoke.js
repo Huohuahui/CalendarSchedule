@@ -398,4 +398,168 @@ async function runAll(port) {
   ok('死参数 onStatusChange 已删除', cal.indexOf('onStatusChange') < 0);
   const cd = fs.readFileSync(path.join(ROOT, 'js/countdown.js'), 'utf8');
   ok('废弃 API substr 已替换', cd.indexOf('.substr(') < 0);
+
+  // ============================================================
+  console.log('\n=== L. 复审修复回归（P1 / P2 / P3） ===');
+  // ============================================================
+
+  // ---------- P1-1 导入后撤销栈必须清空 ----------
+  w.setStatus(2026, 11, 11, 'overtime');
+  ok('改动后撤销栈可用', w.canUndo() === true);
+
+  const impRes = w.applyImportedBackup({
+    version: 4, statuses: { '2026-03-01': 'rest' }, countdowns: [], todos: []
+  });
+  ok('导入返回成功', impRes.ok === true, impRes.msg);
+  ok('导入后撤销栈已清空（P1-1）', w.canUndo() === false && w.canRedo() === false);
+  ok('导入后数据已整体替换',
+    Object.keys(w.collectBackupPayload().statuses).length === 1 &&
+    w.collectBackupPayload().statuses['2026-03-01'] === 'rest');
+
+  // ---------- P1-2 多选批量标记只占一条历史 ----------
+  w.setStatus(2026, 10, 1, 'overtime');
+  w.multiSelectMode = true;
+  w.selectedDates = ['2026-10-01', '2026-10-02', '2026-10-03'];
+  w.applyMarkToSelected('rest');
+  const undoneCount = w.undoChanges();
+  ok('批量标记聚合成单条历史（P1-2）', undoneCount === 3, 'got ' + undoneCount);
+  ok('一次撤销即整批回退',
+    w.collectBackupPayload().statuses['2026-10-01'] === 'overtime' &&
+    !w.collectBackupPayload().statuses['2026-10-02'] &&
+    !w.collectBackupPayload().statuses['2026-10-03']);
+  w.multiSelectMode = false;
+  w.selectedDates = [];
+
+  // ---------- P2-7 倒计时数据清洗 ----------
+  const cleanCds = w.sanitizeCountdowns([
+    { name: '好条目', targetDate: '2026-12-01', category: '工作', subCategory: 'project', pinned: true },
+    { name: '', targetDate: '2026-12-01' },
+    { name: '坏日期', targetDate: 'not-a-date' },
+    null, 'x', 42,
+    { name: '好条目', targetDate: '2026-12-02' }
+  ]);
+  ok('倒计时清洗只留合法条目（P2-7）', cleanCds.length === 1, 'got ' + cleanCds.length);
+  ok('清洗后图标按分类现算', cleanCds[0] && cleanCds[0].subIcon === '📋');
+  ok('清洗后保留 pinned', cleanCds[0] && cleanCds[0].pinned === true);
+  ok('非数组输入返回空数组', w.sanitizeCountdowns('nope').length === 0);
+  w.localStorage.setItem('countdownList', JSON.stringify([
+    { name: '', targetDate: 'x' }, { name: '合法', targetDate: '2026-12-09' }
+  ]));
+  ok('启动加载也走清洗', w.loadCountdownList().length === 1);
+
+  // ---------- P2-6 主题白名单 ----------
+  w.setTheme('不存在的主题');
+  ok('非法主题被拒并回落默认（P2-6）',
+    !d.documentElement.hasAttribute('data-theme') && !w.localStorage.getItem('calendar_theme'));
+  w.setTheme('red');
+  ok('合法主题仍生效', d.documentElement.getAttribute('data-theme') === 'red');
+  w.setTheme('default');
+
+  // ---------- P2-4 Ctrl+Z 输入框豁免 ----------
+  ok('isEditableTarget 识别输入框（P2-4）',
+    w.isEditableTarget({ tagName: 'INPUT' }) === true &&
+    w.isEditableTarget({ tagName: 'TEXTAREA' }) === true &&
+    w.isEditableTarget({ tagName: 'DIV' }) === false);
+
+  // ---------- P2-9 天气缓存按请求地点归属 ----------
+  w.cacheWeather({ current_weather: { temperature: 1 } },
+    { latitude: 1.5, longitude: 2.5, name: '测试城' });
+  const cached = JSON.parse(w.localStorage.getItem('weatherCache'));
+  ok('缓存记录传入地点而非写入时的当前地点（P2-9）',
+    cached.loc.latitude === 1.5 && cached.loc.name === '测试城');
+
+  // ---------- P3 统一工具（去重） ----------
+  ok('copyTextToClipboard 已统一', typeof w.copyTextToClipboard === 'function');
+  ok('formatDateTime 输出 YYYY-MM-DD HH:MM',
+    /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(w.formatDateTime(Date.now())));
+  ok('todayStr 输出 YYYY-MM-DD', /^\d{4}-\d{2}-\d{2}$/.test(w.todayStr()));
+  ok('sanitizeStatusMap 已统一到 utils', typeof w.sanitizeStatusMap === 'function');
+  ok('sanitizeStatusMap 会丢弃非法键值',
+    Object.keys(w.sanitizeStatusMap({ '2026-01-01': 'overtime', 'bad': 'rest', '2026-01-02': 'x' })).length === 1);
+
+  // ---------- P3-b 弹窗无障碍增强层 ----------
+  const testOv = d.createElement('div');
+  testOv.className = 'modal-overlay';
+  const testBox = d.createElement('div');
+  testBox.className = 'modal-box';
+  testOv.appendChild(testBox);
+  d.body.appendChild(testOv);
+  await new Promise(r => setTimeout(r, 40));
+  ok('新建浮层自动获得 role=dialog（P3-b）', testBox.getAttribute('role') === 'dialog');
+  ok('新建浮层自动获得 aria-modal', testBox.getAttribute('aria-modal') === 'true');
+  ok('容器自动可聚焦', testBox.getAttribute('tabindex') === '-1');
+
+  testOv.dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  ok('点遮罩关闭已由增强层统一接管', !d.body.contains(testOv));
+
+  const jsModal = fs.readFileSync(path.join(ROOT, 'js/modal.js'), 'utf8');
+  ok('modal.js 实现 Tab 焦点困留', jsModal.indexOf("e.key !== 'Tab'") >= 0);
+  ok('modal.js 关闭后归还焦点', jsModal.indexOf('modalRestoreFocus') >= 0);
+  ok('index.html 已引入 modal.js',
+    fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').indexOf('js/modal.js') >= 0);
+  ok('sw 预缓存含 modal.js', sw.indexOf('modal.js') >= 0);
+
+  // ---------- P3-c 键盘可达性 ----------
+  const quickCard = d.getElementById('quickTodo');
+  ok('快速操作卡可聚焦（P3-c）',
+    quickCard.getAttribute('role') === 'button' && quickCard.getAttribute('tabindex') === '0');
+  const footerLinks = Array.prototype.slice.call(d.querySelectorAll('.footer-hints .footer-link'));
+  ok('页脚三项均可聚焦', footerLinks.length === 3 &&
+    footerLinks.every(el => el.getAttribute('role') === 'button' && el.getAttribute('tabindex') === '0'));
+  ok('翻月按钮有可访问名称', d.getElementById('prevMonthBtn').getAttribute('aria-label') === '上一月');
+  ok('天气城市名与刷新可聚焦',
+    d.getElementById('weatherLocBtn').getAttribute('role') === 'button' &&
+    d.getElementById('weatherRefresh').getAttribute('role') === 'button');
+
+  // 键盘激活要在「活着的」窗口上测：
+  // 主页窗口在前面小节里已经被 close() 过，关闭后的窗口不再响应 document 级事件
+  const kbd = await load(port, '/index.html');
+  const kw = kbd.w, kd = kw.document;
+  let cardClicked = 0;
+  const probe = kd.createElement('div');
+  probe.setAttribute('role', 'button');
+  probe.setAttribute('tabindex', '0');
+  probe.addEventListener('click', () => { cardClicked++; });
+  kd.body.appendChild(probe);
+  press(kw, probe, 'Enter');
+  press(kw, probe, ' ');
+  ok('模拟按钮支持回车 / 空格触发（P3-c）', cardClicked === 2, 'got ' + cardClicked);
+
+  // 原生 <button> 不应被重复触发（只由浏览器默认行为负责）
+  let nativeClicks = 0;
+  const nativeBtn = kd.createElement('button');
+  nativeBtn.setAttribute('role', 'button');
+  nativeBtn.addEventListener('click', () => { nativeClicks++; });
+  kd.body.appendChild(nativeBtn);
+  press(kw, nativeBtn, 'Enter');
+  ok('原生 button 不被重复触发', nativeClicks === 0, 'got ' + nativeClicks);
+
+  ok('新页面运行期无未捕获错误', kbd.errors.length === 0, kbd.errors.join(' | '));
+  kw.close();
+
+  // ---------- P3 样式与死代码 ----------
+  ok('due-soon 样式已补（P1-3）',
+    fs.readFileSync(path.join(ROOT, 'css/todo.css'), 'utf8').indexOf('.todo-remind-item.due-soon') >= 0);
+  const cssMain = fs.readFileSync(path.join(ROOT, 'css/main.css'), 'utf8');
+  ok('全站有 :focus-visible 样式', cssMain.indexOf(':focus-visible') >= 0);
+  ok('输入框已豁免 user-select',
+    /input,[\s\S]{0,160}user-select:\s*text/.test(cssMain));
+  ok('hover 规则已按设备能力隔离',
+    fs.readFileSync(path.join(ROOT, 'css/sidebar.css'), 'utf8').indexOf('@media (hover: hover)') >= 0);
+
+  ok('死函数 findBuiltinPlan 已删除',
+    fs.readFileSync(path.join(ROOT, 'js/plan.js'), 'utf8').indexOf('findBuiltinPlan') < 0);
+  ok('死变量 dragDropCount 已删除',
+    fs.readFileSync(path.join(ROOT, 'js/dragDrop.js'), 'utf8').indexOf('dragDropCount') < 0);
+  ok('兼容旧名 showAddCountdownModal 已删除',
+    fs.readFileSync(path.join(ROOT, 'js/countdown.js'), 'utf8').indexOf('showAddCountdownModal') < 0);
+  ok('死选择器 arrow-btn 已清除',
+    fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').indexOf('arrow-btn') < 0);
+  ok('死选择器 other-month 已清除',
+    fs.readFileSync(path.join(ROOT, 'css/calendar.css'), 'utf8').indexOf('other-month') < 0);
+  ok('stray 的 sanitizeStatusMap 只有一份实现',
+    fs.readFileSync(path.join(ROOT, 'js/main.js'), 'utf8').indexOf('function sanitizeStatusMap') < 0);
+
+  // ---------- 收尾：本轮没有运行时错误 ----------
+  ok('主页运行期无未捕获错误', home.errors.length === 0, home.errors.join(' | '));
 }
