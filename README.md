@@ -94,8 +94,7 @@
 ├── pwa/
 │   └── manifest.json     # Web App Manifest
 ├── docs/                 # 项目文档
-│   ├── 代码审查报告.html
-│   └── 项目评估与上线移植报告.html
+│   └── 代码审查报告.html
 └── tests/                # 冒烟测试（开发用，不参与发布产物）
     ├── README.md         # 怎么跑、覆盖范围、已知边界
     └── smoke.js          # 整站体检脚本
