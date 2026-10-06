@@ -179,7 +179,9 @@
             <!-- ===== 天气模块 ===== -->
             <div class="weather-module">
                 <div class="weather-header">
-                    <span>🌤️ 今日天气</span>
+                    <span class="weather-loc" id="weatherLocBtn" title="点击切换城市">
+                        🌤️ <span id="weatherLocName">定位中…</span><span class="weather-loc-caret">▾</span>
+                    </span>
                     <span id="weatherRefresh" class="weather-refresh">🔄 刷新</span>
                 </div>
                 <div id="weatherDisplay" class="weather-body">
@@ -216,6 +218,7 @@
     <script src="js/templates.js" defer></script>
     <script src="js/todo.js" defer></script>
     <script src="js/todo-reminder.js" defer></script>
+    <script src="js/weather-location.js" defer></script>
     <script src="js/main.js" defer></script>
 
     <!-- 注册 Service Worker -->

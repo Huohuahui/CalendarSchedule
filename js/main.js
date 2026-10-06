@@ -9,11 +9,21 @@ var currentYear = 2026;
 var currentMonth = 7;
 
 // ---------- 天气配置 ----------
-/** 天气定位（如需更换城市改这里，或在未来接入浏览器定位） */
-var WEATHER_LOCATION = {
-    latitude: 23.4,
-    longitude: 116.7
-};
+/**
+ * 当前天气坐标：由 weather-location.js 的地点模块提供
+ * （自动定位 / 手动选城市，见 js/weather-location.js）。
+ * 这里只做兜底，保证即使地点模块未加载也能正常显示天气。
+ */
+var WEATHER_FALLBACK_LOCATION = { name: '汕头', latitude: 23.4, longitude: 116.7 };
+
+function currentWeatherCoords() {
+    if (typeof getWeatherLocation === 'function') {
+        var loc = getWeatherLocation();
+        if (loc && typeof loc.latitude === 'number' && typeof loc.longitude === 'number') return loc;
+    }
+    return WEATHER_FALLBACK_LOCATION;
+}
+
 /** 天气缓存有效期：10 分钟 */
 var WEATHER_CACHE_TTL = 10 * 60 * 1000;
 var WEATHER_CACHE_KEY = 'weatherCache';
@@ -506,6 +516,11 @@ function getCachedWeather() {
         if (Date.now() - cache.fetchedAt > WEATHER_CACHE_TTL) return null;
         // 缓存的预报天数不足 6 天（旧版只存了 3 天）时视为失效，强制重新获取
         if (!cache.data.daily || !cache.data.daily.time || cache.data.daily.time.length < 6) return null;
+        // 缓存必须属于当前地点，否则会显示上一个城市的天气
+        var loc = currentWeatherCoords();
+        if (!cache.loc
+            || Math.abs(cache.loc.latitude - loc.latitude) > 1e-6
+            || Math.abs(cache.loc.longitude - loc.longitude) > 1e-6) return null;
         return cache.data;
     } catch (e) {
         return null;
@@ -514,8 +529,10 @@ function getCachedWeather() {
 
 function cacheWeather(data) {
     try {
+        var loc = currentWeatherCoords();
         localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({
             fetchedAt: Date.now(),
+            loc: { latitude: loc.latitude, longitude: loc.longitude, name: loc.name },
             data: data
         }));
     } catch (e) { /* 存储失败不影响使用 */ }
@@ -536,8 +553,9 @@ function fetchWeather(forceRefresh) {
 
     container.innerHTML = '<div class="weather-loading">⏳ 加载中...</div>';
 
-    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + WEATHER_LOCATION.latitude +
-        '&longitude=' + WEATHER_LOCATION.longitude +
+    var loc = currentWeatherCoords();
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + loc.latitude +
+        '&longitude=' + loc.longitude +
         '&current_weather=true' +
         '&hourly=temperature_2m,weathercode' +
         '&daily=temperature_2m_max,temperature_2m_min,weathercode' +
@@ -561,11 +579,19 @@ function fetchWeather(forceRefresh) {
         })
         .catch(function () {
             clearTimeout(timeoutId);
-            // 失败时尝试用过期缓存兜底（有总比没有强）
+            // 失败时尝试用过期缓存兜底（有总比没有强，但必须是同一地点）
             var stale = null;
             try {
                 var raw = localStorage.getItem(WEATHER_CACHE_KEY);
-                if (raw) stale = JSON.parse(raw).data;
+                if (raw) {
+                    var parsed = JSON.parse(raw);
+                    var curLoc = currentWeatherCoords();
+                    if (parsed && parsed.data && parsed.loc
+                        && Math.abs(parsed.loc.latitude - curLoc.latitude) < 1e-6
+                        && Math.abs(parsed.loc.longitude - curLoc.longitude) < 1e-6) {
+                        stale = parsed.data;
+                    }
+                }
             } catch (e) { /* 忽略 */ }
             if (stale && stale.current_weather) {
                 renderWeatherWithForecast(stale);
@@ -873,9 +899,13 @@ document.addEventListener('DOMContentLoaded', function () {
         fullUpdate();
     });
 
-    // 加载天气（带缓存）
+    // 初始化天气地点（首次访问请求定位；拒绝/失败/不支持则回退默认城市）并加载天气
     setTimeout(function () {
-        loadWeather();
+        if (typeof initWeatherLocation === 'function') {
+            initWeatherLocation();
+        } else {
+            loadWeather();
+        }
     }, 500);
 
     var refreshBtn = document.getElementById('weatherRefresh');

@@ -289,6 +289,145 @@ hr.divider {
     padding: 12px 0;
 }
 
+/* ---------- 天气地点（可点击切换城市） ---------- */
+.weather-loc {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    max-width: 128px;
+    padding: 1px 5px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.weather-loc:hover {
+    background: #eef2f7;
+    color: var(--primary-dark);
+}
+.weather-loc-caret {
+    font-size: 0.6rem;
+    color: #94a3b8;
+}
+.weather-loc:hover .weather-loc-caret {
+    color: var(--primary);
+}
+
+/* ---------- 城市选择弹窗 ---------- */
+.city-box {
+    max-width: 380px;
+    width: 92%;
+    max-height: 84vh;
+    display: flex;
+    flex-direction: column;
+}
+.city-geo-btn {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    cursor: pointer;
+    font-family: inherit;
+    transition: 0.2s;
+    margin-bottom: 8px;
+}
+.city-geo-btn:hover:not(:disabled) {
+    opacity: 0.9;
+}
+.city-geo-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.city-cur {
+    font-size: 0.65rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 10px;
+}
+.city-results {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 168px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+.city-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1.5px solid #eef2f7;
+    border-radius: 10px;
+    background: #fbfdff;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.city-row:hover {
+    border-color: #dbe3ee;
+    background: #f4f8ff;
+}
+.city-row-name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.city-row-region {
+    font-size: 0.6rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+.city-sub {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+.city-common {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+    max-height: 132px;
+    overflow-y: auto;
+}
+.city-chip {
+    border: none;
+    border-radius: 20px;
+    padding: 5px 11px;
+    font-size: 0.68rem;
+    color: #475569;
+    background: #f1f5f9;
+    cursor: pointer;
+    font-family: inherit;
+    transition: 0.2s;
+}
+.city-chip:hover {
+    background: var(--primary-bg);
+    color: var(--primary-dark);
+}
+.city-chip.active {
+    background: var(--primary);
+    color: #fff;
+}
+.city-msg {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    text-align: center;
+    padding: 10px 0;
+}
+.city-tip {
+    font-size: 0.58rem;
+    color: #94a3b8;
+    line-height: 1.5;
+    border-top: 1px solid #f1f4f9;
+    padding-top: 8px;
+}
+
 /* ---------- 问候语 ---------- */
 .greeting-module {
     border-top: 1px solid #f1f4f9;
