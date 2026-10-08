@@ -341,9 +341,9 @@ async function runAll(port) {
   ok('错误：展示堆栈', ad.querySelectorAll('#errorBody .err-stack').length === 1);
   const toggle = ad.getElementById('optinToggle');
   ok('上报开关存在且因未配置而禁用', !!toggle && toggle.disabled === true);
-  ok('反馈区分 Issues 与 PR',
-    aText.indexOf('Issues') >= 0 && aText.indexOf('Pull Request') >= 0);
-  ok('有 Issues 新建议题链接', !!ad.querySelector('a[href*="issues/new"]'));
+  ok('反馈渠道为邮箱且区分 PR',
+    aText.indexOf('huohuahui_calendar@2925.com') >= 0 && aText.indexOf('Pull Request') >= 0);
+  ok('有反馈邮箱 mailto 链接', !!ad.querySelector('a[href^="mailto:"]'));
   ok('许可写明 MIT License', aText.indexOf('MIT License') >= 0);
   ok('无「请填写」占位符', aText.indexOf('请填写') < 0);
   ok('关于页无未捕获错误', about.errors.length === 0, about.errors.join(' | '));
@@ -369,7 +369,7 @@ async function runAll(port) {
     ['含未成年人条款', '未成年人'],
     ['含免责声明', '免责声明'],
     ['标注生效日期', '生效日期'],
-    ['联系方式为 Issues', 'GitHub Issues']
+    ['联系方式为邮箱', 'huohuahui_calendar@2925.com']
   ].forEach(([label, needle]) => ok(label, pText.indexOf(needle) >= 0, '缺少：' + needle));
   ok('无「请填写」占位符', pText.indexOf('请填写') < 0);
   ok('隐私页无未捕获错误', pv.errors.length === 0, pv.errors.join(' | '));
