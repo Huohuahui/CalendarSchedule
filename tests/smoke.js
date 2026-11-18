@@ -197,11 +197,15 @@ async function runAll(port) {
     'got ' + tabbable[0].dataset.day);
 
   // Enter 切换状态
-  const targetDay = parseInt(tabbable[0].dataset.day, 10);
-  const key = '2026-10-' + String(targetDay).padStart(2, '0');
-  const before = w.getStatus(2026, 10, targetDay);
-  press(w, tabbable[0], 'Enter');
-  const after = w.getStatus(2026, 10, targetDay);
+  // ⚠️ 应用打开的是「当前月」的日历，断言必须跟着格子上的真实年月走（data-year/data-month），
+  //    不能写死年月 —— 否则一跨月（10 月写的测试 11 月跑）断言的月份和显示的月份就对不上
+  const focusCell = tabbable[0];
+  const navYear = parseInt(focusCell.dataset.year, 10);
+  const navMonth = parseInt(focusCell.dataset.month, 10);
+  const targetDay = parseInt(focusCell.dataset.day, 10);
+  const before = w.getStatus(navYear, navMonth, targetDay);
+  press(w, focusCell, 'Enter');
+  const after = w.getStatus(navYear, navMonth, targetDay);
   ok('Enter 切换了该天状态', before !== after, before + ' → ' + after);
   ok('切换后可撤销（走的是同一套历史栈）', w.canUndo() === true);
 
@@ -385,6 +389,16 @@ async function runAll(port) {
   });
   ok('sw 导航缓存按请求地址（不再一律写 index.html）',
     sw.indexOf('cache.put(request, clone)') >= 0);
+  const cbSrc = fs.readFileSync(path.join(ROOT, 'js/cloud-backup.js'), 'utf8');
+  ok('云备份自动同步已实现',
+    cbSrc.indexOf('function cbDataChanged') >= 0 && cbSrc.indexOf('cbAutoSyncNow') >= 0);
+  ok('自动同步有防抖与节流',
+    cbSrc.indexOf('CB_AUTO_DEBOUNCE_MS') >= 0 && cbSrc.indexOf('CB_AUTO_MIN_INTERVAL') >= 0);
+  ok('登录后主动询问云端恢复', cbSrc.indexOf('function cbMaybeOfferRestore') >= 0);
+  ['js/storage.js', 'js/todo.js', 'js/countdown.js', 'js/plan.js', 'js/themes.js', 'js/backup.js'].forEach(f => {
+    ok('自动同步钩子已挂 ' + f,
+      fs.readFileSync(path.join(ROOT, f), 'utf8').indexOf('cbDataChanged') >= 0);
+  });
   const rb = fs.readFileSync(path.join(ROOT, 'robots.txt'), 'utf8');
   ok('robots.txt 允许抓取并指向 sitemap',
     rb.indexOf('Allow: /') >= 0 && rb.indexOf('Sitemap:') >= 0);

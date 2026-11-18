@@ -133,6 +133,7 @@ function sanitizeCountdowns(raw) {
 function saveCountdownList(list) {
     try {
         localStorage.setItem(COUNTDOWN_STORAGE_KEY, JSON.stringify(list));
+        if (typeof cbDataChanged === 'function') cbDataChanged();
     } catch (e) {
         console.warn('保存倒计时失败:', e);
         if (typeof showToast === 'function') {

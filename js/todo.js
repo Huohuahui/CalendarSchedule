@@ -46,6 +46,7 @@ function loadTodos() {
 function saveTodos() {
     try {
         localStorage.setItem(TODO_KEY, JSON.stringify(todoList));
+        if (typeof cbDataChanged === 'function') cbDataChanged();
         return true;
     } catch (e) {
         console.warn('保存待办失败:', e);

@@ -12,6 +12,8 @@
  *      本地 file:// / 静态托管预览 / 未授权域名下，这里会明确告知并禁用，
  *      绝不伪造一个本地假的「云备份」。
  *   4) 只上传「整包快照」，不做字段级合并：恢复时整包覆盖（会二次确认）。
+ *   5) 自动同步：开启并登录后，数据一有改动就防抖自动上传（指纹没变不传、60 秒节流）；
+ *      新设备登录时若本机还没有数据、云端有快照，会主动询问是否恢复。
  *
  * 默认关闭：开启后才会去加载 SDK（CDN）并发起网络请求，符合本项目「隐私优先」的定位。
  *
@@ -36,6 +38,10 @@ var cbPendingOtp = null;    // { email, verificationId, isExistingUser }
 var cbOtpSent = false;      // 验证码是否已发送（决定是否显示验证码输入框）
 var cbResetSent = false;    // 重置码是否已发送
 var cbAuthBound = false;    // 是否已绑定 onAuthStateChange
+var cbAutoTimer = null;     // 自动同步防抖定时器
+var cbAutoLastTryAt = 0;    // 上次自动上传发起时间（节流用）
+var cbAutoState = null;     // 最近一次自动同步结果 { ok, at, msg }
+var cbRestoreOffered = false; // 本次页面会话是否已询问过「从云端恢复」
 
 // ============================================================
 // 配置 / 环境判定
@@ -127,6 +133,7 @@ function cbBindAuthEvents() {
     try {
         cbClient.auth.onAuthStateChange(function (event, session) {
             cbSession = session || null;
+            if (cbSession) cbMaybeOfferRestore();
             if (document.getElementById('backupCloudHost')) cbRerender();
         });
     } catch (e) { /* 忽略 */ }
@@ -195,6 +202,7 @@ function cbRefreshSession(then) {
         return cloud.auth.getSession();
     }).then(function (res) {
         cbSession = (res && res.data) ? res.data : null;
+        if (cbSession) cbMaybeOfferRestore();
         if (then) then();
         return cbSession;
     }).catch(function () {
@@ -237,6 +245,7 @@ function cbSignInPassword() {
         if (res && res.error) { cbSetStatus('账号或密码不正确', true); cbRerender(); return; }
         cbSession = (res && res.data) ? res.data : null;
         cbSetStatus('登录成功', false);
+        cbMaybeOfferRestore();
         cbRerender();
     }).catch(function (e) {
         cbBusy = false;
@@ -304,6 +313,7 @@ function cbVerifyOtp() {
         cbOtpSent = false;
         cbSession = (res && res.data) ? res.data : null;
         cbSetStatus(pending.isExistingUser ? '登录成功' : '注册成功，已登录', false);
+        cbMaybeOfferRestore();
         cbRerender();
     }).catch(function (e) {
         cbBusy = false;
@@ -361,19 +371,37 @@ function cbDoReset() {
 }
 
 // ============================================================
-// 云备份：上传 / 恢复
+// 自动同步（开启 + 登录后，改动自动上传）
 // ============================================================
 
-function cbBackupNow() {
-    if (!cbSession) { cbSetStatus('请先登录', true); cbRerender(); return; }
+var CB_AUTO_DEBOUNCE_MS = 4000;    // 改动停止 4 秒后才上传（合并连续操作）
+var CB_AUTO_MIN_INTERVAL = 60000;  // 两次自动上传至少间隔 60 秒（防连续改动打爆请求）
 
-    cbBusy = true; cbSetStatus('正在备份到云…', false); cbRerender();
+/**
+ * 各模块保存数据后调用（storage / todo / countdown / plan / theme / 导入恢复）。
+ * 只在「已开启云备份 + 已登录 + 域名正确」时才真正排程；其它情况静默返回。
+ */
+function cbDataChanged() {
+    if (!cbEnabled() || !cbOriginOk() || !cbSession) return;
+    if (cbAutoTimer) clearTimeout(cbAutoTimer);
+    cbAutoTimer = setTimeout(cbAutoSyncNow, CB_AUTO_DEBOUNCE_MS);
+}
 
-    var payload = collectBackupPayload();
-    var itemCount = Object.keys(payload.statuses || {}).length;
+function cbAutoSyncNow() {
+    cbAutoTimer = null;
+    if (!cbEnabled() || !cbOriginOk() || !cbSession || cbBusy) return;
+    // 指纹没变（撤销回原状 / 主题切回来等）就不传
+    var fp = currentBackupFingerprint();
+    if (fp === loadBackupMeta().lastFingerprint) return;
 
-    cbGetClient().then(function (cloud) {
-        // 每个账号只保留一份快照：有则更新，无则新建
+    var wait = CB_AUTO_MIN_INTERVAL - (Date.now() - cbAutoLastTryAt);
+    if (wait > 0) { cbAutoTimer = setTimeout(cbAutoSyncNow, wait + 500); return; }
+    cbAutoUpload(fp);
+}
+
+/** 整包快照上传：每个账号只保留一份，有则更新，无则新建。手动备份与自动同步共用 */
+function cbUploadSnapshot(payload, itemCount) {
+    return cbGetClient().then(function (cloud) {
         return cloud.database.from(CB_TABLE).select('id').limit(1).then(function (res) {
             if (res && res.error) throw res.error;
             var rows = res && res.data ? res.data : [];
@@ -387,7 +415,74 @@ function cbBackupNow() {
                 .insert({ payload: payload, item_count: itemCount })
                 .select();
         });
+    });
+}
+
+function cbAutoUpload(fp) {
+    cbAutoLastTryAt = Date.now();
+    var payload = collectBackupPayload();
+    var itemCount = Object.keys(payload.statuses || {}).length;
+
+    cbUploadSnapshot(payload, itemCount).then(function (res) {
+        if (res && res.error) { cbAutoDone(false, cbErrorText(res.error)); return; }
+        var rows = res && res.data ? res.data : [];
+        if (!rows.length) { cbAutoDone(false, '未生效（登录可能已失效）'); return; }
+        markCloudBackedUp();
+        cbAutoDone(true, '');
+    }).catch(function (e) {
+        cbAutoDone(false, cbErrorText(e));
+    });
+}
+
+/** 自动同步结果只静默记状态（打开备份中心才可见），失败不弹窗打扰，下次改动会重试 */
+function cbAutoDone(ok, msg) {
+    cbAutoState = { ok: ok, at: Date.now(), msg: msg || '' };
+    if (document.getElementById('backupCloudHost')) cbRerender();
+}
+
+/**
+ * 新设备 / 清缓存后首次登录：本机还没有任何数据、云端有快照 → 主动问一次要不要恢复。
+ * 每次页面会话最多问一次；applyImportedBackup 自带确认与整包覆盖逻辑，不会静默覆盖。
+ */
+function cbMaybeOfferRestore() {
+    if (cbRestoreOffered || !cbSession || !cbEnabled() || !cbOriginOk()) return;
+    var sum = backupDataSummary();
+    if (sum.statuses > 0 || sum.countdowns > 0 || sum.todos > 0 || sum.hasPlan) return;
+    cbRestoreOffered = true;
+
+    cbGetClient().then(function (cloud) {
+        return cloud.database.from(CB_TABLE)
+            .select('payload, item_count, updated_at')
+            .order('updated_at', { ascending: false })
+            .limit(1);
     }).then(function (res) {
+        if (!res || res.error) return;
+        var rows = res && res.data ? res.data : [];
+        if (!rows.length || !rows[0].item_count) return;
+        var when = backupFormatTime(new Date(rows[0].updated_at).getTime());
+        if (confirm('检测到你的账号在云端有一份备份（' + when + '，含 '
+            + rows[0].item_count + ' 个标记），本机还没有数据。\n\n现在恢复到本机吗？')) {
+            var out = applyImportedBackup(rows[0].payload);
+            if (out.ok) updateBackupBadge();
+            cbSetStatus(out.ok ? '✅ 已从云端恢复' : (out.cancelled ? '已取消恢复' : out.msg), !out.ok && !out.cancelled);
+            cbRerender();
+        }
+    }).catch(function () { /* 静默：读取失败不阻断正常使用 */ });
+}
+
+// ============================================================
+// 云备份：手动上传 / 恢复
+// ============================================================
+
+function cbBackupNow() {
+    if (!cbSession) { cbSetStatus('请先登录', true); cbRerender(); return; }
+
+    cbBusy = true; cbSetStatus('正在备份到云…', false); cbRerender();
+
+    var payload = collectBackupPayload();
+    var itemCount = Object.keys(payload.statuses || {}).length;
+
+    cbUploadSnapshot(payload, itemCount).then(function (res) {
         cbBusy = false;
         if (res && res.error) { cbSetStatus(cbErrorText(res.error), true); cbRerender(); return; }
         var rows = res && res.data ? res.data : [];
@@ -553,6 +648,13 @@ function cbRenderSignedIn(box, meta) {
     var state = cbEl('div', 'cloud-state');
     state.appendChild(cbEl('strong', null, '已登录：' + cbMaskEmail(who)));
     state.appendChild(cbEl('div', null, '上次云备份：' + last));
+    var auto = '自动同步：有改动时自动上传';
+    if (cbAutoState) {
+        auto = cbAutoState.ok
+            ? '自动同步：正常，最近 ' + backupFormatTime(cbAutoState.at)
+            : '自动同步：上次失败（' + cbAutoState.msg + '），有改动时会自动重试';
+    }
+    state.appendChild(cbEl('div', null, auto));
     box.appendChild(state);
 
     var row = cbEl('div', 'cloud-actions');
@@ -604,14 +706,15 @@ function renderCloudBackupSection(host) {
 
     if (!cbEnabled()) {
         section.appendChild(cbEl('div', 'cloud-note',
-            '默认关闭。开启后，数据会备份到「你自己的账号」下，换设备或清过缓存也能找回；'
+            '默认关闭。开启并登录后，你的改动会自动同步到「你自己的账号」下，换设备或清过缓存也能找回；'
             + '按账号隔离，别人看不到你的数据。'));
         host.appendChild(section);
         return;
     }
 
     section.appendChild(cbEl('div', 'cloud-note',
-        '数据备份到你的账号下，按账号隔离。恢复会用云端快照整包覆盖本机数据（会二次确认）。'));
+        '开启后，改动会自动同步到你的账号下（也可随时手动「备份到云」）；'
+        + '恢复会用云端快照整包覆盖本机数据（会二次确认）。'));
 
     var statusEl = cbStatusBox();
     if (statusEl) section.appendChild(statusEl);
@@ -644,6 +747,8 @@ function initCloudBackup() {
     if (cbEnabled() && cbOriginOk()) {
         cbRefreshSession(function () {
             if (document.getElementById('backupCloudHost')) cbRerender();
+            // 页面刚打开：若本机有未同步的改动且已登录，补一次自动同步
+            cbAutoSyncNow();
         });
     }
 }

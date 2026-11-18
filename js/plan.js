@@ -189,6 +189,7 @@ function loadPlan() {
 function savePlan(plan) {
     try {
         localStorage.setItem(PLAN_KEY, JSON.stringify(plan));
+        if (typeof cbDataChanged === 'function') cbDataChanged();
         return true;
     } catch (e) {
         return false;

@@ -253,6 +253,9 @@ function applyImportedBackup(data) {
 
     if (backup) console.log('[导入备份] 导入前的数据快照：', backup);
 
+    // 整包导入也算一次数据改动：通知云备份自动同步（未开启时为空操作）
+    if (typeof cbDataChanged === 'function') cbDataChanged();
+
     // 数据已被整体替换：撤销栈里的旧值再回放就是错的，必须清空。
     // （否则用户导入后按 Ctrl+Z 会把导入前的旧状态写回刚导入的数据）
     if (typeof clearHistory === 'function') clearHistory();

@@ -72,6 +72,9 @@ function setTheme(theme) {
         try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* 忽略 */ }
     }
 
+    // 主题也计入备份快照：变化后通知云备份自动同步（未开启时为空操作）
+    if (typeof cbDataChanged === 'function') cbDataChanged();
+
     // 更新圆点选中状态
     document.querySelectorAll('.theme-dot').forEach(function (dot) {
         if (dot.dataset.theme === theme) {

@@ -111,6 +111,8 @@ function saveToStorage() {
     try {
         // 将对象转为 JSON 字符串并保存
         localStorage.setItem(STORAGE_KEY, JSON.stringify(statusMap));
+        // 通知云备份自动同步（未开启云备份时为空操作）
+        if (typeof cbDataChanged === 'function') cbDataChanged();
     } catch (error) {
         console.warn('保存到 localStorage 失败，本次修改仅在内存中生效:', error);
         if (typeof showToast === 'function') {
