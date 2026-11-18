@@ -490,7 +490,14 @@ function fetchWeather(forceRefresh) {
     }
 
     container.innerHTML = '<div class="weather-loading">⏳ 加载中...</div>';
+    attemptWeatherFetch(container, 2);   // 总共尝试 2 次（1 次自动静默重试）
+}
 
+/**
+ * 实际发起天气请求。失败且还有剩余次数时，1.5 秒后静默重试（弱网/偶发超时不直接报错）；
+ * 重试会重新读取当前地点（期间切城市由 weatherRequestSeq 保证只有最新请求生效）。
+ */
+function attemptWeatherFetch(container, triesLeft) {
     var loc = currentWeatherCoords();
     var mySeq = ++weatherRequestSeq;   // 本次请求的序号，用于丢弃迟到响应
     var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + loc.latitude +
@@ -501,9 +508,9 @@ function fetchWeather(forceRefresh) {
         '&timezone=Asia/Shanghai' +
         '&forecast_days=6';
 
-    // 6 秒超时，防止弱网下一直卡在「加载中」
+    // 10 秒超时，防止弱网下一直卡在「加载中」
     var controller = new AbortController();
-    var timeoutId = setTimeout(function () { controller.abort(); }, 6000);
+    var timeoutId = setTimeout(function () { controller.abort(); }, 10000);
 
     fetch(url, { signal: controller.signal })
         .then(function (res) { return res.json(); })
@@ -521,6 +528,12 @@ function fetchWeather(forceRefresh) {
         .catch(function () {
             clearTimeout(timeoutId);
             if (mySeq !== weatherRequestSeq) return;
+            if (triesLeft > 1) {
+                setTimeout(function () {
+                    if (mySeq === weatherRequestSeq) attemptWeatherFetch(container, triesLeft - 1);
+                }, 1500);
+                return;
+            }
             // 失败时尝试用过期缓存兜底（有总比没有强，但必须是同一地点）
             var stale = null;
             try {
